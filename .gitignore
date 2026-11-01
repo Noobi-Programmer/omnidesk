@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+!.env.sample
+node_modules/
+.next/
+dist/
+build/
+.vercel/
+*.log
+.DS_Store
+*.pem
