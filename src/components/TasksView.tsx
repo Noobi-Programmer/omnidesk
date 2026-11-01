@@ -45,7 +45,7 @@ export function TasksView({
         <button
           type="button"
           onClick={() => setIsAdding(!isAdding)}
-          className="px-2.5 py-1 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-xs flex items-center gap-1 transition"
+          className="px-2.5 py-1 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-sm text-xs flex items-center gap-1 transition font-semibold cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New task</span>

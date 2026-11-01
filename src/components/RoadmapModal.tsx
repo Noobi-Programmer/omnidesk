@@ -57,7 +57,7 @@ export function RoadmapModal({ isOpen, onClose, featureName }: RoadmapModalProps
         <div className="flex justify-end pt-1">
           <button
             onClick={onClose}
-            className="px-space-md py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-xs transition shadow-sm"
+            className="px-space-md py-1.5 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-sm text-xs transition shadow-sm font-semibold cursor-pointer"
             type="button"
           >
             Back to Research

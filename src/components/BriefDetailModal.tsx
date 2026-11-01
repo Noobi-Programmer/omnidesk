@@ -204,7 +204,7 @@ export function BriefDetailModal({
                 onDeepWebResearch(`Research implications of: ${item.headline}`);
                 onClose();
               }}
-              className="px-3 py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-xs flex items-center gap-1.5 transition font-medium shadow-sm"
+              className="px-3 py-1.5 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-sm text-xs flex items-center gap-1.5 transition font-semibold shadow-sm cursor-pointer"
             >
               <span>Research on Web</span>
               <ArrowRight className="w-3 h-3" />

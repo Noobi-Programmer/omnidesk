@@ -258,7 +258,7 @@ export function ProfileSetupModal({
           <button
             type="button"
             onClick={handleSave}
-            className="px-space-md py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-xs flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer"
+            className="px-space-md py-1.5 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-md text-xs flex items-center gap-1.5 transition shadow-sm font-semibold cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
             <span>Build My Workspace</span>

@@ -196,7 +196,7 @@ export function AuthModal({
 
           <button
             type="submit"
-            className="w-full mt-1 py-2 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-xs font-medium flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+            className="w-full mt-1 py-2 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-md text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
           >
             <span>{mode === "signup" ? "Continue to Setup" : "Sign In & Enter"}</span>
             <ArrowRight className="w-3.5 h-3.5" />

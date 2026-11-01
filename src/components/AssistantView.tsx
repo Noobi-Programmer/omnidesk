@@ -192,7 +192,7 @@ export function AssistantView({
         <button
           type="submit"
           disabled={!input.trim()}
-          className="p-2 bg-primary-container hover:bg-[#6c78de] disabled:opacity-40 text-on-primary-container rounded transition shadow-sm cursor-pointer disabled:cursor-not-allowed"
+          className="p-2 bg-primary-container hover:bg-[#ff771a] disabled:opacity-40 text-white rounded transition shadow-sm cursor-pointer disabled:cursor-not-allowed"
           title="Send message"
         >
           <Send className="w-4 h-4" />

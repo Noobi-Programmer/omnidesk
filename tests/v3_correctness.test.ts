@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import {
   ResearchRequestSchema,
   type ApiResponse,
@@ -516,5 +516,9 @@ describe("OMNIDESK V3 — CRITICAL PRODUCTION CORRECTION (21-Criterion Test Suit
     ];
     const hasActiveLive = activeMonitors.some((m) => m.status === "active");
     expect(hasActiveLive).toBe(true);
+  });
+
+  afterAll(() => {
+    clearFounderBytes();
   });
 });

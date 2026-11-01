@@ -28,7 +28,6 @@ import type {
 } from "@/lib/contracts";
 import { Sidebar, type WorkspaceTab } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import { LandingPage } from "@/components/LandingPage";
 import { AuthModal } from "@/components/AuthModal";
 import { ProfileSetupModal } from "@/components/ProfileSetupModal";
 import { OverviewDashboard } from "@/components/OverviewDashboard";
@@ -76,8 +75,8 @@ const INITIAL_PROMPT =
   "Compare EU cold brew aluminum can suppliers (250ml slim, MOQ < 50k, recyclable liners)";
 
 export default function WorkspacePage() {
-  // App View State: "landing" | "workspace"
-  const [appView, setAppView] = useState<"landing" | "workspace">("landing");
+  // App View State: Workspace directly (no landing page)
+  const [appView, setAppView] = useState<"workspace">("workspace");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -281,7 +280,7 @@ export default function WorkspacePage() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("omnidesk_auth_state");
     }
-    setAppView("landing");
+    setIsAuthModalOpen(true);
   };
 
   // Deep Web Research Runner
@@ -317,7 +316,20 @@ export default function WorkspacePage() {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error(`API returned status ${response.status}`);
+        let errDetail = `API returned status ${response.status}`;
+        try {
+          const errBody = await response.json();
+          if (errBody?.error?.message) {
+            errDetail = errBody.error.message;
+          } else if (typeof errBody?.error === "string") {
+            errDetail = errBody.error;
+          } else if (errBody?.message) {
+            errDetail = errBody.message;
+          }
+        } catch {
+          // Fall back to status text
+        }
+        throw new Error(errDetail);
       }
 
       const reader = response.body.getReader();
@@ -377,7 +389,7 @@ export default function WorkspacePage() {
                 }
               }
 
-              if (finalData) {
+              if (finalData && finalData.sources && finalData.sources.length > 0) {
                 setResult(finalData);
                 setCurrentStage("done");
                 setProgressPercent(100);
@@ -385,10 +397,20 @@ export default function WorkspacePage() {
 
                 const updatedHistory = saveToHistory(finalData);
                 setHistory(updatedHistory);
+              } else if (!finalData) {
+                setCurrentStage("failed");
+                setProgressMsg("Received empty or malformed research result.");
+                setResult(null);
               }
             } else if (eventName === "error") {
+              const errorMsg =
+                parsedData?.error?.message ||
+                (typeof parsedData?.error === "string" ? parsedData.error : null) ||
+                parsedData?.message ||
+                "An unexpected error occurred during research";
               setCurrentStage("failed");
-              setProgressMsg(parsedData.message || "An unexpected error occurred during research");
+              setProgressMsg(errorMsg);
+              setResult(null);
             }
           } catch {
             // ignore non-json keepalives
@@ -402,6 +424,7 @@ export default function WorkspacePage() {
       } else {
         setCurrentStage("failed");
         setProgressMsg(err instanceof Error ? err.message : "Pipeline execution failed");
+        setResult(null);
       }
     } finally {
       setIsRunning(false);
@@ -616,40 +639,7 @@ export default function WorkspacePage() {
 
   const isLiveEngine = Boolean(process.env.NEXT_PUBLIC_APP_NAME) || !result?.mock;
 
-  // SCREEN 1: Public Landing Page View
-  if (appView === "landing") {
-    return (
-      <>
-        <LandingPage
-          onGetStarted={() => handleOpenAuth("signup")}
-          onLogIn={() => handleOpenAuth("login")}
-          onExploreWorkspace={() => {
-            setAppView("workspace");
-            setCurrentTab("overview");
-          }}
-        />
-
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          onAuthenticate={handleAuthenticated}
-          initialMode={authMode}
-        />
-
-        <ProfileSetupModal
-          isOpen={isProfileModalOpen}
-          onComplete={handleCompleteProfile}
-          onClose={() => {
-            setIsProfileModalOpen(false);
-            setAppView("workspace");
-          }}
-          initialProfile={profile}
-        />
-      </>
-    );
-  }
-
-  // SCREEN 4: Main Workspace / Dashboard
+  // Main Executive Workspace / Dashboard
   return (
     <div className="bg-surface min-h-screen font-body-sm text-body-sm text-on-surface antialiased flex flex-col selection:bg-primary-container selection:text-on-primary-container">
       {/* Sidebar Navigation */}
@@ -672,7 +662,7 @@ export default function WorkspacePage() {
       />
 
       {/* Main Workspace Frame */}
-      <div className="lg:pl-64 flex-1 flex flex-col">
+      <div className="lg:pl-60 flex-1 flex flex-col">
         {/* Top Header */}
         <Header
           onToggleMobileMenu={() => setMobileSidebarOpen(true)}
@@ -907,7 +897,7 @@ export default function WorkspacePage() {
                       </p>
                       <button
                         onClick={handleStartResearch}
-                        className="mt-2 px-4 py-2 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-xs transition shadow-sm cursor-pointer"
+                        className="mt-2 px-4 py-2 bg-primary-container hover:bg-[#ff771a] text-white font-semibold rounded font-label-md text-xs transition shadow-sm cursor-pointer"
                         type="button"
                       >
                         Run Example Research

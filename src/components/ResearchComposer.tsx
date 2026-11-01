@@ -118,16 +118,16 @@ export function ResearchComposer({
               onClick={onSubmit}
               disabled={isRunning || !prompt.trim()}
               type="button"
-              className="px-space-md py-[6px] bg-primary-container hover:bg-[#6c78de] disabled:opacity-50 disabled:hover:bg-primary-container text-on-primary-container rounded font-label-md text-label-md flex items-center gap-space-xs transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
+              className="px-space-md py-[6px] bg-primary-container hover:bg-[#ff771a] disabled:opacity-50 disabled:hover:bg-primary-container text-white font-medium rounded font-label-md text-label-md flex items-center gap-space-xs transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
             >
               {isRunning ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-on-primary-container" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Researching...</span>
                 </>
               ) : (
                 <>
-                  <Search className="w-4 h-4 text-on-primary-container" />
+                  <Search className="w-4 h-4 text-white" />
                   <span>Research</span>
                 </>
               )}

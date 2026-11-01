@@ -97,7 +97,7 @@ export function HistoryModal({
                       onSelect(item);
                       onClose();
                     }}
-                    className="px-3 py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-xs flex items-center gap-1 transition shadow-sm"
+                    className="px-3 py-1.5 bg-primary-container hover:bg-[#ff771a] text-white rounded font-label-sm text-xs flex items-center gap-1 transition shadow-sm cursor-pointer font-medium"
                     type="button"
                   >
                     <span>Reopen</span>

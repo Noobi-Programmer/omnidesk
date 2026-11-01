@@ -13,6 +13,8 @@ import type {
   ApiResponse,
   Warning,
   ResearchIntent,
+  ResearchReport,
+  ResearchCitation,
 } from "@/lib/contracts";
 import { executeSearch } from "../services/tinyfish/search";
 import { fetchPageContents } from "../services/tinyfish/fetch";
@@ -31,6 +33,141 @@ import {
 } from "./extraction";
 import { synthesizeRecommendationsAndActions } from "./synthesis";
 import { detectIntentFromPrompt } from "../prompts/plan";
+import { getLLMProvider, type LLMProvider } from "../services/llm";
+import { z } from "zod";
+
+const LLMDeepReportSchema = z.object({
+  title: z.string().describe("Descriptive research report title"),
+  executiveSummary: z.string().describe("Comprehensive executive summary synthesizing the investigation"),
+  methodology: z.string().describe("Explanation of search queries and fetched sources analyzed"),
+  keyFindings: z.array(z.string()).min(2).max(8).describe("Core factual bullet points discovered"),
+  sections: z.array(
+    z.object({
+      heading: z.string(),
+      content: z.string().describe("Detailed markdown section with inline citations like [cite-1]"),
+      citationIds: z.array(z.string()).describe("List of citation IDs referenced in this section"),
+    })
+  ).min(2),
+  relevantEntities: z.array(
+    z.object({
+      name: z.string(),
+      type: z.string().describe("e.g. Startup, Enterprise, VC Fund, Research Lab, Framework"),
+      description: z.string(),
+      sourceUrl: z.string().optional(),
+    })
+  ).optional().default([]),
+  statisticsAndEvidence: z.array(
+    z.object({
+      claim: z.string(),
+      value: z.string(),
+      sourceUrl: z.string(),
+      sourceTitle: z.string().optional().default("Source"),
+      quote: z.string().optional(),
+    })
+  ).optional().default([]),
+  conflictsAndUncertainties: z.array(z.string()).optional().default([]),
+  implicationsAndConclusions: z.array(z.string()).min(1).describe("Strategic conclusions and next steps"),
+});
+
+async function synthesizeDeepReportWithLLM(
+  provider: LLMProvider,
+  request: ResearchRequest,
+  plan: ResearchPlan,
+  usableSources: SourceDocument[],
+  facts: ExtractedFact[]
+): Promise<ResearchReport> {
+  const now = new Date().toISOString();
+  const citations: ResearchCitation[] = usableSources.map((s, idx) => ({
+    id: `cite-${idx + 1}`,
+    sourceUrl: s.url,
+    sourceTitle: s.title || s.domain,
+    domain: s.domain,
+    snippet: s.contentExcerpt ? s.contentExcerpt.slice(0, 240) + "..." : "Retrieved via TinyFish Fetch.",
+    retrievedAt: s.fetchedAt || now,
+  }));
+
+  const sourcesText = usableSources
+    .map((s, idx) => {
+      const cid = `cite-${idx + 1}`;
+      // Bounded source budget: ~3,500 chars per fetched source
+      const excerpt = (s.content || s.contentExcerpt || "").slice(0, 3500);
+      return `[${cid}] Title: ${s.title}\nURL: ${s.url}\nDomain: ${s.domain}\nContent:\n${excerpt}\n---`;
+    })
+    .join("\n\n");
+
+  const factsText = facts
+    .filter((f) => f.status === "found" && f.quote)
+    .slice(0, 15)
+    .map((f) => `- ${f.field}: "${f.quote}" (${f.sourceTitle || f.sourceUrl})`)
+    .join("\n");
+
+  const systemInstruction = `You are OmniDesk's Deep Research Intelligence Engine.
+Synthesize verified, multi-source research into an executive-grade intelligence report.
+
+STRICT ACCURACY & GROUNDING RULES:
+1. Rely EXCLUSIVELY on the provided source excerpts.
+2. NEVER invent, hallucinate, or extrapolate companies, founders, funding amounts, dates, investors, or metrics.
+3. Every factual claim MUST include an inline citation tag matching the numbered source list, e.g. [cite-1], [cite-2].
+4. Restrict all citations strictly to the URLs provided in the source list.
+5. If information is unavailable, missing, or contradictory across sources, explicitly document it in conflictsAndUncertainties.
+6. Section content MUST be formatted in clean Markdown (headings, lists, bold text, tables where appropriate).
+7. If the research is about startups, technology, competitors, or markets, do NOT include manufacturing MOQs, supplier pricing, or factory sample requests unless explicitly asked.`;
+
+  const prompt = `Research Question: "${request.prompt}"
+Intent: ${plan.intent}
+Objective: ${plan.objective}
+
+Successfully Fetched Primary Sources (${usableSources.length} sources):
+${sourcesText}
+
+Extracted Factual Claims:
+${factsText || "None extracted via regex."}
+
+Generate the structured deep research report conforming strictly to the requested schema.`;
+
+  const llmResult = await provider.complete({
+    prompt,
+    systemInstruction,
+    schema: LLMDeepReportSchema,
+    temperature: 0.1,
+  });
+
+  const validCitationIdSet = new Set(citations.map((c) => c.id));
+  const validUrlSet = new Set(citations.map((c) => c.sourceUrl));
+
+  const sanitizedSections = llmResult.sections.map((sec, idx) => ({
+    id: `sec-${idx + 1}`,
+    heading: sec.heading,
+    content: sec.content,
+    citationIds: (sec.citationIds || []).filter((id) => validCitationIdSet.has(id)),
+  }));
+
+  const sanitizedEvidence = (llmResult.statisticsAndEvidence || [])
+    .filter((ev) => validUrlSet.has(ev.sourceUrl))
+    .map((ev) => ({
+      claim: ev.claim,
+      value: ev.value,
+      sourceUrl: ev.sourceUrl,
+      sourceTitle: ev.sourceTitle || "Source",
+      quote: ev.quote,
+    }));
+
+  return {
+    id: `rep-${Math.random().toString(36).substring(2, 9)}`,
+    title: llmResult.title || `Deep Research Report: ${request.prompt.slice(0, 60)}`,
+    objective: plan.objective,
+    executiveSummary: llmResult.executiveSummary,
+    methodology: llmResult.methodology,
+    keyFindings: llmResult.keyFindings,
+    sections: sanitizedSections,
+    relevantEntities: llmResult.relevantEntities || [],
+    statisticsAndEvidence: sanitizedEvidence,
+    conflictsAndUncertainties: llmResult.conflictsAndUncertainties || [],
+    implicationsAndConclusions: llmResult.implicationsAndConclusions,
+    citations,
+    createdAt: now,
+  };
+}
 
 export interface ResearchEngine {
   execute(
@@ -50,6 +187,55 @@ export class RealResearchEngine implements ResearchEngine {
     const warnings: Warning[] = [];
 
     const mode = request.mode || "standard";
+
+    // ----------------------------------------------------
+    // PRE-FLIGHT VALIDATION: Credentials & Provider checks
+    // ----------------------------------------------------
+    if (!process.env.TINYFISH_API_KEY || !process.env.TINYFISH_API_KEY.trim()) {
+      const errMsg = "TINYFISH_API_KEY is not configured. Please set your TinyFish API key to run research.";
+      onEvent("progress", {
+        stage: "failed",
+        progress: 0,
+        message: errMsg,
+      });
+      onEvent("error", {
+        success: false,
+        status: "error",
+        data: null,
+        sources: [],
+        warnings: [],
+        error: {
+          code: "MISSING_TINYFISH_KEY",
+          message: errMsg,
+          retryable: false,
+        },
+      });
+      throw new Error(errMsg);
+    }
+
+    const llmProvider = getLLMProvider();
+    if (mode === "deep" && llmProvider.name === "mock") {
+      const errMsg = "AI synthesis unavailable: GEMINI_API_KEY or GROQ_API_KEY is required for Deep Research mode. Please configure your LLM provider key.";
+      onEvent("progress", {
+        stage: "failed",
+        progress: 15,
+        message: errMsg,
+      });
+      onEvent("error", {
+        success: false,
+        status: "error",
+        data: null,
+        sources: [],
+        warnings: [],
+        error: {
+          code: "LLM_CONFIG_ERROR",
+          message: errMsg,
+          retryable: false,
+        },
+      });
+      throw new Error(errMsg);
+    }
+
     const intent: ResearchIntent = detectIntentFromPrompt(request.prompt);
     const constraints = parsePromptConstraints(request.prompt);
 
@@ -261,6 +447,7 @@ export class RealResearchEngine implements ResearchEngine {
     });
 
     const searchResults: SearchResult[] = [];
+    const searchErrors: Array<{ query: string; error: string }> = [];
     const searchLocation = constraints.geography?.includes("EU") ? "DE" : "IN";
 
     for (const q of queriesToRun) {
@@ -274,11 +461,58 @@ export class RealResearchEngine implements ResearchEngine {
         });
         searchResults.push(...queryResults);
       } catch (err) {
+        const errStr = err instanceof Error ? err.message : String(err);
+        searchErrors.push({ query: q.query, error: errStr });
         warnings.push({
           code: "SEARCH_QUERY_FAILED",
-          message: `Query "${q.query}" failed: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Query "${q.query}" failed: ${errStr}`,
         });
       }
+    }
+
+    if (searchErrors.length === queriesToRun.length && searchResults.length === 0) {
+      const sampleErr = searchErrors[0]?.error || "TinyFish search failed";
+      const errMsg = `TinyFish Search failed for all queries: ${sampleErr}`;
+      onEvent("progress", {
+        stage: "failed",
+        progress: 25,
+        message: errMsg,
+      });
+      onEvent("error", {
+        success: false,
+        status: "error",
+        data: null,
+        sources: [],
+        warnings,
+        error: {
+          code: "SEARCH_FAILED",
+          message: errMsg,
+          retryable: true,
+        },
+      });
+      throw new Error(errMsg);
+    }
+
+    if (searchResults.length === 0) {
+      const errMsg = `No relevant websites discovered. TinyFish Search returned zero results for query: "${request.prompt.slice(0, 60)}"`;
+      onEvent("progress", {
+        stage: "failed",
+        progress: 30,
+        message: errMsg,
+      });
+      onEvent("error", {
+        success: false,
+        status: "error",
+        data: null,
+        sources: [],
+        warnings,
+        error: {
+          code: "ZERO_SEARCH_RESULTS",
+          message: errMsg,
+          retryable: true,
+        },
+      });
+      throw new Error(errMsg);
     }
 
     // ----------------------------------------------------
@@ -341,6 +575,33 @@ export class RealResearchEngine implements ResearchEngine {
     const fetchOutcome = await fetchPageContents(urlsToFetch);
     const sources: SourceDocument[] = fetchOutcome.sources;
     warnings.push(...fetchOutcome.warnings);
+
+    // Filter usable sources
+    const usableSources = sources.filter(
+      (s) => s.status === "ok" && s.content && s.content.trim().length > 30
+    );
+
+    if (usableSources.length === 0) {
+      const errMsg = "Failed to retrieve usable content from discovered sources. TinyFish Fetch returned zero readable pages.";
+      onEvent("progress", {
+        stage: "failed",
+        progress: 60,
+        message: errMsg,
+      });
+      onEvent("error", {
+        success: false,
+        status: "error",
+        data: null,
+        sources,
+        warnings,
+        error: {
+          code: "FETCH_FAILED",
+          message: errMsg,
+          retryable: true,
+        },
+      });
+      throw new Error(errMsg);
+    }
 
     // Emit each source document
     for (const s of sources) {
@@ -424,6 +685,41 @@ export class RealResearchEngine implements ResearchEngine {
     const recommendations: Recommendation[] = synthesis.recommendations;
     const missingInfo: MissingInfo[] = synthesis.missingInfo;
     const actionDrafts: ActionDraft[] = synthesis.actionDrafts;
+    let finalReport: ResearchReport = synthesis.report;
+    let successfulLlmCalls = 0;
+
+    if (mode === "deep" && llmProvider.name !== "mock") {
+      try {
+        finalReport = await synthesizeDeepReportWithLLM(
+          llmProvider,
+          request,
+          plan,
+          usableSources,
+          facts
+        );
+        successfulLlmCalls = 1;
+      } catch (llmErr) {
+        const errMsg = `AI research synthesis failed: ${llmErr instanceof Error ? llmErr.message : String(llmErr)}`;
+        onEvent("progress", {
+          stage: "failed",
+          progress: 88,
+          message: errMsg,
+        });
+        onEvent("error", {
+          success: false,
+          status: "error",
+          data: null,
+          sources,
+          warnings,
+          error: {
+            code: "LLM_SYNTHESIS_ERROR",
+            message: errMsg,
+            retryable: true,
+          },
+        });
+        throw new Error(errMsg);
+      }
+    }
 
     const durationMs = Date.now() - startTime;
 
@@ -445,12 +741,12 @@ export class RealResearchEngine implements ResearchEngine {
         searches: queriesToRun.length,
         urlsFetched: sources.length,
         agentRuns: 0,
-        llmCalls: 0,
+        llmCalls: successfulLlmCalls,
         sourcesOk: sources.filter((s) => s.status === "ok").length,
         sourcesFailed: sources.filter((s) => s.status === "failed").length,
       },
       mock: false,
-      report: synthesis.report,
+      report: finalReport,
     };
 
     const envelope: ApiResponse<ResearchResponse> = {

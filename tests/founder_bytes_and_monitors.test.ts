@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { getFounderBytes, addFounderByte } from "../src/server/services/bytes/index";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
+import { getFounderBytes, addFounderByte, clearFounderBytes } from "../src/server/services/bytes/index";
 import { SAMPLE_FOUNDER_BYTES } from "./fixtures/sample_bytes";
 import {
   listMonitors,
@@ -15,6 +15,10 @@ import type { FounderByte, ResearchResponse } from "../src/lib/contracts";
 describe("Founder Bytes & Source Registry Suite", () => {
   beforeEach(() => {
     SAMPLE_FOUNDER_BYTES.forEach((b) => addFounderByte(b));
+  });
+
+  afterAll(() => {
+    clearFounderBytes();
   });
   it("retrieves curated founder bytes and filters by category", async () => {
     const allBytes = await getFounderBytes({ category: "All" });

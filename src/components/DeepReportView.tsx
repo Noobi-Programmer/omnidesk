@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   FileText,
   Download,
@@ -24,6 +26,113 @@ interface DeepReportViewProps {
   response?: ResearchResponse;
   onSaveReport?: (response: ResearchResponse) => void;
   isSaved?: boolean;
+}
+
+export function MarkdownContent({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({ href, children, ...props }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium inline-flex items-center gap-0.5 break-all"
+            {...props}
+          >
+            {children}
+            <ExternalLink className="w-2.5 h-2.5 inline shrink-0 ml-0.5 opacity-70" />
+          </a>
+        ),
+        h1: ({ children, ...props }) => (
+          <h1 className="text-base font-bold text-on-surface mt-4 mb-2 first:mt-0" {...props}>
+            {children}
+          </h1>
+        ),
+        h2: ({ children, ...props }) => (
+          <h2 className="text-sm font-semibold text-on-surface mt-3 mb-1.5 first:mt-0" {...props}>
+            {children}
+          </h2>
+        ),
+        h3: ({ children, ...props }) => (
+          <h3 className="text-xs font-semibold text-primary mt-2.5 mb-1 first:mt-0" {...props}>
+            {children}
+          </h3>
+        ),
+        p: ({ children, ...props }) => (
+          <p className="mb-2 leading-relaxed last:mb-0" {...props}>
+            {children}
+          </p>
+        ),
+        ul: ({ children, ...props }) => (
+          <ul className="list-disc pl-5 mb-2 space-y-1 text-on-surface-variant" {...props}>
+            {children}
+          </ul>
+        ),
+        ol: ({ children, ...props }) => (
+          <ol className="list-decimal pl-5 mb-2 space-y-1 text-on-surface-variant" {...props}>
+            {children}
+          </ol>
+        ),
+        li: ({ children, ...props }) => (
+          <li className="leading-relaxed" {...props}>
+            {children}
+          </li>
+        ),
+        strong: ({ children, ...props }) => (
+          <strong className="font-semibold text-on-surface" {...props}>
+            {children}
+          </strong>
+        ),
+        em: ({ children, ...props }) => (
+          <em className="italic text-on-surface" {...props}>
+            {children}
+          </em>
+        ),
+        table: ({ children, ...props }) => (
+          <div className="overflow-x-auto my-3">
+            <table
+              className="min-w-full divide-y divide-outline-variant/30 text-xs border border-outline-variant/30 rounded-lg overflow-hidden"
+              {...props}
+            >
+              {children}
+            </table>
+          </div>
+        ),
+        th: ({ children, ...props }) => (
+          <th
+            className="px-3 py-2 bg-surface-container font-semibold text-on-surface text-left border-b border-outline-variant/20"
+            {...props}
+          >
+            {children}
+          </th>
+        ),
+        td: ({ children, ...props }) => (
+          <td className="px-3 py-2 border-t border-outline-variant/20 text-on-surface-variant" {...props}>
+            {children}
+          </td>
+        ),
+        code: ({ children, className, ...props }) => {
+          const isInline = !className;
+          return isInline ? (
+            <code
+              className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px] text-primary"
+              {...props}
+            >
+              {children}
+            </code>
+          ) : (
+            <pre className="p-3 rounded-lg bg-surface-container-highest font-mono text-xs overflow-x-auto my-2 text-on-surface">
+              <code {...props}>{children}</code>
+            </pre>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 }
 
 export function DeepReportView({
@@ -170,9 +279,9 @@ export function DeepReportView({
           <Layers className="w-4 h-4" />
           <span>Executive Summary</span>
         </div>
-        <p className="text-sm text-on-surface leading-relaxed">
-          {report.executiveSummary}
-        </p>
+        <div className="text-sm text-on-surface leading-relaxed">
+          <MarkdownContent content={report.executiveSummary} />
+        </div>
       </section>
 
       {/* 2. Key Findings Bullets */}
@@ -220,8 +329,8 @@ export function DeepReportView({
               </div>
             )}
           </div>
-          <div className="text-xs sm:text-sm text-on-surface-variant leading-relaxed whitespace-pre-line space-y-2">
-            {section.content}
+          <div className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+            <MarkdownContent content={section.content} />
           </div>
         </section>
       ))}

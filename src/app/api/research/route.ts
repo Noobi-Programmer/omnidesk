@@ -38,8 +38,12 @@ export async function POST(req: NextRequest) {
         }
       }, 5000);
 
+      let hasEmittedError = false;
       const sendEvent = (event: SseEventName, data: unknown) => {
         try {
+          if (event === "error") {
+            hasEmittedError = true;
+          }
           const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
           controller.enqueue(encoder.encode(payload));
         } catch {
@@ -50,18 +54,20 @@ export async function POST(req: NextRequest) {
       try {
         await engine.execute(parsed.data, sendEvent);
       } catch (error) {
-        sendEvent("error", {
-          success: false,
-          status: "error",
-          data: null,
-          sources: [],
-          warnings: [],
-          error: {
-            code: "PIPELINE_ERROR",
-            message: error instanceof Error ? error.message : "Pipeline execution failed",
-            retryable: true,
-          },
-        });
+        if (!hasEmittedError) {
+          sendEvent("error", {
+            success: false,
+            status: "error",
+            data: null,
+            sources: [],
+            warnings: [],
+            error: {
+              code: "PIPELINE_ERROR",
+              message: error instanceof Error ? error.message : "Pipeline execution failed",
+              retryable: true,
+            },
+          });
+        }
       } finally {
         clearInterval(heartbeatInterval);
         try {
