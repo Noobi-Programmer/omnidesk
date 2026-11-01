@@ -90,3 +90,17 @@ export async function fetchPageContents(
 
   return { sources, warnings };
 }
+
+export async function fetchUrlAsMarkdown(
+  url: string,
+  purpose?: string
+): Promise<{ content: string; markdown: string; title?: string }> {
+  const res = await fetchPageContents([url], purpose);
+  const found = res.sources.find((s) => s.url === url || s.finalUrl === url);
+  const text = found?.contentExcerpt || "";
+  return {
+    content: text,
+    markdown: text,
+    title: found?.title,
+  };
+}

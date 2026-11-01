@@ -10,6 +10,7 @@ import type {
   ActionDraft,
   SourceDocument,
 } from "@/lib/contracts";
+import { synthesizeRecommendationsAndActions } from "../orchestrator/synthesis";
 
 export class MockResearchEngine {
   async execute(
@@ -149,9 +150,8 @@ export class MockResearchEngine {
             domain: "ardaghgroup.com",
             title: "Ardagh Beverage Can Spec Sheet v4.1 (Standard & Organic)",
             retrievedVia: "search",
-            fetchedVia: "agent",
+            fetchedVia: "fetch",
             status: "ok",
-            agentLiveUrl: "https://agent.tinyfish.ai/runs/ardagh-live/stream",
             fetchedAt: now,
           },
           {
@@ -193,25 +193,29 @@ export class MockResearchEngine {
             domain: "example-blrbox.co.in",
             title: "Bangalore Box Company — Industrial Shipping Cartons",
             retrievedVia: "search",
-            fetchedVia: "agent",
+            fetchedVia: "fetch",
             status: "ok",
-            agentLiveUrl: "https://agent.tinyfish.ai/runs/demo-stream/live",
             fetchedAt: now,
           },
         ];
 
     for (const s of sources) {
       onEvent("source", s);
+      if (s.agentLiveUrl) {
+        onEvent("agent_live", {
+          sourceId: s.id,
+          url: s.url,
+          agentLiveUrl: s.agentLiveUrl,
+        });
+      }
     }
 
-    const agentSource = sources.find((s) => s.agentLiveUrl);
-    if (agentSource && agentSource.agentLiveUrl) {
-      onEvent("agent_live", {
-        sourceId: agentSource.id,
-        url: agentSource.url,
-        agentLiveUrl: agentSource.agentLiveUrl,
-      });
-    }
+    // Always emit at least one agent_live event for mock transparency
+    onEvent("agent_live", {
+      sourceId: sources[0].id,
+      url: sources[0].url,
+      agentLiveUrl: "https://agent.tinyfish.ai/run/mock-session-live",
+    });
 
     // Stage 4: Extracting Facts
     onEvent("progress", {
@@ -851,6 +855,8 @@ Operations Lead`,
           },
         ];
 
+    const synthesis = synthesizeRecommendationsAndActions(comparison, plan, request, sources, facts);
+
     const response: ResearchResponse = {
       taskId,
       createdAt: now,
@@ -868,7 +874,7 @@ Operations Lead`,
         durationMs: 4200,
         searches: plan.queries.length,
         urlsFetched: sources.length,
-        agentRuns: sources.some((s) => s.agentLiveUrl) ? 1 : 0,
+        agentRuns: 0,
         llmCalls: 0,
         sourcesOk: sources.filter((s) => s.status === "ok").length,
         sourcesFailed: sources.filter((s) => s.status === "failed").length,
@@ -876,6 +882,7 @@ Operations Lead`,
       mock: true,
       qualifiedCount: comparison.length,
       isSufficient: comparison.length >= 3,
+      report: synthesis.report,
     };
 
     const envelope: ApiResponse<ResearchResponse> = {

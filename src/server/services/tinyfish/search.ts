@@ -160,3 +160,16 @@ export async function executeSearch(options: SearchOptions): Promise<SearchResul
 
   return results;
 }
+
+export async function searchWeb(
+  query: string,
+  options?: { maxResults?: number; location?: string }
+): Promise<SearchResult[]> {
+  const queryId = `q-${Math.random().toString(36).substring(2, 8)}`;
+  const list = await executeSearch({
+    query,
+    queryId,
+    location: options?.location,
+  });
+  return options?.maxResults ? list.slice(0, options.maxResults) : list;
+}

@@ -15,7 +15,6 @@ import type {
 } from "@/lib/contracts";
 import { executeSearch } from "../services/tinyfish/search";
 import { fetchPageContents } from "../services/tinyfish/fetch";
-import { runAgentExtraction } from "../services/tinyfish/agent";
 import { getLLMProvider } from "../services/llm";
 import { createPlanPrompt } from "../prompts/plan";
 import { MockResearchEngine } from "../mock/engine";
@@ -61,7 +60,7 @@ export class RealResearchEngine implements ResearchEngine {
 
     const maxSearches = mode === "quick" ? 2 : mode === "deep" ? 5 : 3;
     const maxFetchUrls = mode === "quick" ? 4 : mode === "deep" ? 12 : 6;
-    const maxAgentRuns = mode === "deep" ? 2 : mode === "standard" ? 1 : 0;
+    const maxAgentRuns = 0; // Pure TinyFish Search & Fetch only
 
     // Build targeted search queries
     const plannedQueries: Array<{ id: string; query: string; purpose: string }> = [];
@@ -214,58 +213,12 @@ export class RealResearchEngine implements ResearchEngine {
     }
 
     // ----------------------------------------------------
-    // STAGE 5: AGENT ESCALATION (when justified)
-    // ----------------------------------------------------
-    let agentRunsCount = 0;
-    if (maxAgentRuns > 0 && process.env.OMNIDESK_AGENT_ENABLED !== "0") {
-      const degradedSupplierSource = sources.find(
-        (s) => !s.isArticle && (s.status === "failed" || (s.contentExcerpt?.length || 0) < 150)
-      );
-
-      if (degradedSupplierSource) {
-        onEvent("progress", {
-          stage: "fetching",
-          progress: 68,
-          message: `Escalating to TinyFish browser agent for ${degradedSupplierSource.domain}...`,
-        });
-
-        try {
-          agentRunsCount++;
-          const agentResult = await runAgentExtraction(
-            degradedSupplierSource.url,
-            degradedSupplierSource.title,
-            {
-              onStreamingUrl: (liveUrl) => {
-                onEvent("agent_live", {
-                  sourceId: degradedSupplierSource.id,
-                  url: degradedSupplierSource.url,
-                  agentLiveUrl: liveUrl,
-                });
-              },
-            }
-          );
-
-          if (agentResult.success && agentResult.data) {
-            degradedSupplierSource.status = "ok";
-            degradedSupplierSource.fetchedVia = "agent";
-            degradedSupplierSource.contentExcerpt = JSON.stringify(agentResult.data);
-          }
-        } catch {
-          warnings.push({
-            code: "AGENT_ESCALATION_FAILED",
-            message: `Browser agent run failed for ${degradedSupplierSource.domain}`,
-          });
-        }
-      }
-    }
-
-    // ----------------------------------------------------
-    // STAGE 6: FACT EXTRACTION & VERIFICATION
+    // STAGE 5: FACT EXTRACTION & VERIFICATION (Clean TinyFish Markdown)
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "extracting",
-      progress: 78,
-      message: "Extracting verified product range, MOQ, pricing, and exact quotes...",
+      progress: 75,
+      message: "Extracting verified claims, metrics, and exact verbatim quotations...",
     });
 
     const extractedCandidates: GroundedSupplierCandidate[] = [];
@@ -296,20 +249,26 @@ export class RealResearchEngine implements ResearchEngine {
     });
 
     // ----------------------------------------------------
-    // STAGE 7: SYNTHESIZING & RECOMMENDATIONS
+    // STAGE 6: SYNTHESIZING & DEEP RESEARCH REPORT
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "synthesizing",
       progress: 88,
-      message: "Benchmarking options against constraints and generating executive decision...",
+      message: "Cross-checking claims, benchmark metrics, and synthesizing deep report...",
     });
 
-    const synthesis = synthesizeRecommendationsAndActions(comparison, plan);
+    const synthesis = synthesizeRecommendationsAndActions(
+      comparison,
+      plan,
+      request,
+      sources,
+      facts
+    );
     const recommendations: Recommendation[] = synthesis.recommendations;
     const missingInfo: MissingInfo[] = synthesis.missingInfo;
 
     // ----------------------------------------------------
-    // STAGE 8: ACTION DRAFTING
+    // STAGE 7: ACTION DRAFTING
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "drafting",
@@ -338,12 +297,13 @@ export class RealResearchEngine implements ResearchEngine {
         durationMs,
         searches: plan.queries.length,
         urlsFetched: sources.length,
-        agentRuns: agentRunsCount,
+        agentRuns: 0,
         llmCalls: 0,
         sourcesOk: sources.filter((s) => s.status === "ok").length,
         sourcesFailed: sources.filter((s) => s.status === "failed").length,
       },
       mock: false,
+      report: synthesis.report,
     };
 
     const envelope: ApiResponse<ResearchResponse> = {

@@ -254,6 +254,7 @@ export interface ResearchResponse {
   mock: boolean;
   qualifiedCount?: number;
   isSufficient?: boolean;
+  report?: ResearchReport;
 }
 
 // ==========================================
@@ -315,9 +316,184 @@ export interface ActionDecisionResponse {
   mailto?: string;
 }
 
+// ==========================================
+// 4. Deep Research Report & Citation Types
+// ==========================================
+
+export interface ResearchCitation {
+  id: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  domain: string;
+  snippet: string;
+  publishedAt?: string;
+  retrievedAt: string;
+}
+
+export interface ResearchSection {
+  id: string;
+  heading: string;
+  content: string;
+  citationIds: string[];
+}
+
+export interface ResearchEntity {
+  name: string;
+  type: string; // company, founder, investor, product, regulation, market
+  description: string;
+  sourceUrl?: string;
+}
+
+export interface ResearchEvidenceItem {
+  claim: string;
+  value: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  quote?: string;
+}
+
+export interface ResearchReport {
+  id: string;
+  title: string;
+  objective: string;
+  executiveSummary: string;
+  methodology: string;
+  keyFindings: string[];
+  sections: ResearchSection[];
+  relevantEntities: ResearchEntity[];
+  statisticsAndEvidence: ResearchEvidenceItem[];
+  conflictsAndUncertainties: string[];
+  implicationsAndConclusions: string[];
+  citations: ResearchCitation[];
+  createdAt: string;
+}
+
+// ==========================================
+// 5. Founder Bytes Domain Types
+// ==========================================
+
+export type FeedCategory =
+  | "All"
+  | "Startups"
+  | "Funding & VC"
+  | "AI & Technology"
+  | "Markets & Business"
+  | "Founder Insights"
+  | "Product Launches";
+
+export type FounderByteSource =
+  | "X (Twitter)"
+  | "Reuters"
+  | "Y Combinator"
+  | "Founder Blog"
+  | "TechCrunch"
+  | "Stratechery"
+  | "VentureBeat"
+  | "Bloomberg"
+  | "Substack";
+
+export interface FounderByte {
+  id: string;
+  title: string;
+  source: FounderByteSource | string;
+  author?: string;
+  publishedAt: string; // Original publication date
+  retrievedAt: string; // Retrieval timestamp
+  url: string;
+  summary: string;
+  whyItMatters: string;
+  categories: FeedCategory[];
+  relatedEntities: string[];
+  isSaved?: boolean;
+}
+
+export interface SavedItem {
+  id: string;
+  type: "research" | "byte";
+  savedAt: string;
+  data: ResearchResponse | FounderByte;
+  notes?: string;
+}
+
+export type ResearchHistoryEntry = ResearchHistoryItem;
+
 export interface ResearchHistoryItem {
   id: string;
   query: string;
   createdAt: string;
   response: ResearchResponse;
 }
+
+// ==========================================
+// 6. TinyMonitor & Source Registry Types
+// ==========================================
+
+export type TinyMonitorType = "search" | "fetch";
+export type TinyMonitorStatus = "active" | "paused" | "error";
+
+export interface TinyMonitorConfig {
+  query?: string;
+  recency_minutes?: number;
+  result_limit?: number;
+  url?: string;
+  format?: string;
+}
+
+export interface TinyMonitor {
+  id: string;
+  name: string;
+  type: TinyMonitorType;
+  config: TinyMonitorConfig;
+  schedule_cron: string;
+  status: TinyMonitorStatus;
+  purpose?: string;
+  last_error?: string | null;
+  webhook_url?: string | null;
+  created_at: string;
+  updated_at?: string;
+  last_run_at?: string;
+}
+
+export interface CreateMonitorRequest {
+  type: TinyMonitorType;
+  name: string;
+  config: TinyMonitorConfig;
+  schedule_cron?: string;
+  purpose?: string;
+  webhook_url?: string;
+}
+
+export interface MonitorWebhookPayload {
+  event?: string;
+  monitor_id?: string;
+  monitor?: Partial<TinyMonitor>;
+  run?: {
+    id: string;
+    request_id?: string;
+    query?: string;
+    url?: string;
+    status_code?: number;
+    result_count?: number;
+    results?: Array<{
+      url: string;
+      title: string;
+      snippet?: string;
+      date?: string;
+      position?: number;
+      site_name?: string;
+    }>;
+    new_result_positions?: number[];
+    created_at?: string;
+  };
+}
+
+export interface SourceRegistryItem {
+  id: string;
+  name: string;
+  domain: string;
+  sourceType: "reuters" | "yc" | "x" | "blog" | "publication";
+  trustLevel: "high" | "medium";
+  categories: FeedCategory[];
+  enabled: boolean;
+}
+

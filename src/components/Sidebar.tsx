@@ -3,20 +3,22 @@
 import React from "react";
 import {
   Compass,
-  Inbox,
-  CheckCircle,
   History,
   Plus,
-  ChevronsUpDown,
-  User,
   Trash2,
   X,
+  Sparkles,
+  Bookmark,
+  Radio,
+  Clock,
 } from "lucide-react";
 import type { ResearchHistoryItem } from "@/lib/contracts";
 
-interface SidebarProps {
-  currentTab: "research" | "inbox" | "tasks" | "history";
-  onTabChange: (tab: "research" | "inbox" | "tasks" | "history") => void;
+export type WorkspaceTab = "research" | "bytes" | "history" | "saved";
+
+export interface SidebarProps {
+  currentTab: WorkspaceTab;
+  onTabChange: (tab: WorkspaceTab) => void;
   onNewResearch: () => void;
   history: ResearchHistoryItem[];
   activeTaskId: string | null;
@@ -24,6 +26,7 @@ interface SidebarProps {
   onDeleteHistoryItem: (id: string, e: React.MouseEvent) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  savedCount: number;
 }
 
 export function Sidebar({
@@ -36,6 +39,7 @@ export function Sidebar({
   onDeleteHistoryItem,
   isOpenMobile,
   onCloseMobile,
+  savedCount,
 }: SidebarProps) {
   return (
     <>
@@ -49,38 +53,29 @@ export function Sidebar({
 
       {/* Sidebar Panel */}
       <aside
-        className={`fixed left-0 top-0 h-full w-60 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-space-sm px-space-xs transition-transform duration-200 ease-in-out ${
+        className={`fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-space-sm px-space-xs transition-transform duration-200 ease-in-out ${
           isOpenMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex flex-col gap-space-sm overflow-hidden">
+        <div className="flex flex-col gap-space-sm overflow-hidden flex-1">
           {/* Header & Logo */}
           <div className="flex items-center justify-between px-space-sm py-space-xs">
             <div className="flex items-center gap-space-xs">
-              <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight font-medium">
+              <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight font-semibold">
                 OmniDesk
               </span>
-              <span className="font-mono-sm text-mono-sm text-outline px-space-xs py-[1px] bg-surface-container rounded border border-outline-variant/30">
-                v2.4
+              <span className="font-mono text-[10px] text-primary px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                v3.0
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                className="flex items-center justify-center p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors"
-                title="Workspace: Intelligence Desk"
-                type="button"
-              >
-                <ChevronsUpDown className="w-4 h-4" />
-              </button>
-              <button
-                onClick={onCloseMobile}
-                className="lg:hidden flex items-center justify-center p-space-xs text-outline hover:text-on-surface hover:bg-surface-container rounded transition-colors"
-                type="button"
-                aria-label="Close sidebar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden flex items-center justify-center p-space-xs text-outline hover:text-on-surface hover:bg-surface-container rounded transition-colors"
+              type="button"
+              aria-label="Close sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           {/* New Research Button */}
@@ -90,149 +85,160 @@ export function Sidebar({
                 onNewResearch();
                 onCloseMobile();
               }}
-              className="w-full flex items-center justify-between px-space-sm py-space-xs bg-surface-container text-on-surface hover:bg-surface-container-high rounded border border-outline-variant/40 transition-colors text-left group"
+              className="w-full flex items-center justify-between px-space-sm py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl transition-all shadow-xs group font-medium"
               type="button"
             >
-              <div className="flex items-center gap-space-xs">
-                <Plus className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                <span className="font-label-md text-label-md">New Research</span>
+              <div className="flex items-center gap-2">
+                <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-semibold">New Research</span>
               </div>
-              <kbd className="font-mono-sm text-mono-sm text-outline bg-surface-container-lowest px-1 py-0.5 rounded border border-outline-variant/30">
+              <kbd className="font-mono text-[10px] text-on-primary/80 bg-black/20 px-1.5 py-0.5 rounded">
                 ⌘K
               </kbd>
             </button>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col gap-[2px] px-space-xs">
+          {/* Main Focused Navigation Links */}
+          <nav className="flex flex-col gap-1 px-space-xs pt-1">
+            {/* 1. Deep Research (Pillar 1) */}
             <button
               onClick={() => {
                 onTabChange("research");
                 onCloseMobile();
               }}
-              className={`flex items-center justify-between px-space-sm py-[6px] rounded transition-colors text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left ${
                 currentTab === "research"
-                  ? "bg-surface-container-high text-on-surface font-medium border-l-2 border-primary-container"
+                  ? "bg-surface-container-high text-on-surface font-semibold border-l-2 border-primary"
                   : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
               }`}
               type="button"
             >
-              <div className="flex items-center gap-space-sm">
-                <Compass className="w-4 h-4 text-primary" />
-                <span className="font-body-sm text-body-sm">Research</span>
+              <div className="flex items-center gap-2.5">
+                <Compass className={`w-4 h-4 ${currentTab === "research" ? "text-primary" : "text-outline"}`} />
+                <span className="text-xs">Deep Research</span>
               </div>
-            </button>
-
-            <button
-              onClick={() => {
-                onTabChange("inbox");
-                onCloseMobile();
-              }}
-              className={`flex items-center justify-between px-space-sm py-[6px] rounded transition-colors text-left ${
-                currentTab === "inbox"
-                  ? "bg-surface-container-high text-on-surface font-medium border-l-2 border-primary-container"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-              type="button"
-            >
-              <div className="flex items-center gap-space-sm">
-                <Inbox className="w-4 h-4 text-outline" />
-                <span className="font-body-sm text-body-sm">Inbox</span>
-              </div>
-              <span className="font-mono-sm text-[10px] text-outline px-1.5 py-0.5 bg-surface-container rounded border border-outline-variant/30">
-                Roadmap
+              <span className="font-mono text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container">
+                Pillar A
               </span>
             </button>
 
+            {/* 2. Founder Bytes (Pillar 2) */}
             <button
               onClick={() => {
-                onTabChange("tasks");
+                onTabChange("bytes");
                 onCloseMobile();
               }}
-              className={`flex items-center justify-between px-space-sm py-[6px] rounded transition-colors text-left ${
-                currentTab === "tasks"
-                  ? "bg-surface-container-high text-on-surface font-medium border-l-2 border-primary-container"
+              className={`flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left ${
+                currentTab === "bytes"
+                  ? "bg-surface-container-high text-on-surface font-semibold border-l-2 border-primary"
                   : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
               }`}
               type="button"
             >
-              <div className="flex items-center gap-space-sm">
-                <CheckCircle className="w-4 h-4 text-outline" />
-                <span className="font-body-sm text-body-sm">Tasks</span>
+              <div className="flex items-center gap-2.5">
+                <Sparkles className={`w-4 h-4 ${currentTab === "bytes" ? "text-tertiary" : "text-outline"}`} />
+                <span className="text-xs">Founder Bytes</span>
               </div>
-              <span className="font-mono-sm text-[10px] text-outline px-1.5 py-0.5 bg-surface-container rounded border border-outline-variant/30">
-                Roadmap
+              <span className="flex items-center gap-1 font-mono text-[10px] text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-800/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live
               </span>
             </button>
 
+            {/* 3. History */}
             <button
               onClick={() => {
                 onTabChange("history");
                 onCloseMobile();
               }}
-              className={`flex items-center justify-between px-space-sm py-[6px] rounded transition-colors text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left ${
                 currentTab === "history"
-                  ? "bg-surface-container-high text-on-surface font-medium border-l-2 border-primary-container"
+                  ? "bg-surface-container-high text-on-surface font-semibold border-l-2 border-primary"
                   : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
               }`}
               type="button"
             >
-              <div className="flex items-center gap-space-sm">
-                <History className="w-4 h-4 text-outline" />
-                <span className="font-body-sm text-body-sm">History</span>
+              <div className="flex items-center gap-2.5">
+                <History className={`w-4 h-4 ${currentTab === "history" ? "text-primary" : "text-outline"}`} />
+                <span className="text-xs">History</span>
               </div>
               {history.length > 0 && (
-                <span className="font-mono-sm text-mono-sm text-outline">
+                <span className="font-mono text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container">
                   {history.length}
+                </span>
+              )}
+            </button>
+
+            {/* 4. Saved */}
+            <button
+              onClick={() => {
+                onTabChange("saved");
+                onCloseMobile();
+              }}
+              className={`flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left ${
+                currentTab === "saved"
+                  ? "bg-surface-container-high text-on-surface font-semibold border-l-2 border-primary"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+              type="button"
+            >
+              <div className="flex items-center gap-2.5">
+                <Bookmark className={`w-4 h-4 ${currentTab === "saved" ? "text-primary" : "text-outline"}`} />
+                <span className="text-xs">Saved</span>
+              </div>
+              {savedCount > 0 && (
+                <span className="font-mono text-[10px] text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20">
+                  {savedCount}
                 </span>
               )}
             </button>
           </nav>
 
-          {/* Divider */}
-          <div className="h-[1px] bg-surface-container mx-space-sm my-space-xs" />
-
-          {/* Recent Research Runs */}
-          <div className="flex flex-col gap-[2px] px-space-xs flex-1 overflow-hidden">
-            <div className="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between">
-              <span>Recent</span>
-              <span className="font-mono-sm text-[10px] text-outline-variant">
-                Local
+          {/* Recent Research Quick-Access List */}
+          <div className="flex-1 flex flex-col min-h-0 pt-3 border-t border-outline-variant/20 px-space-xs">
+            <div className="flex items-center justify-between px-2 mb-2">
+              <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
+                Recent Queries
               </span>
+              <button
+                onClick={() => onTabChange("history")}
+                className="text-[10px] text-primary hover:underline"
+                type="button"
+              >
+                View all
+              </button>
             </div>
 
-            <div className="flex flex-col gap-[1px] overflow-y-auto max-h-[38vh] pr-1">
+            <div className="flex-1 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
               {history.length === 0 ? (
-                <div className="px-space-sm py-2 text-outline font-body-sm text-[12px] italic">
-                  No prior sessions yet. Run a research query to start.
+                <div className="py-6 text-center text-outline/60 text-xs">
+                  No previous queries yet.
                 </div>
               ) : (
-                history.slice(0, 8).map((item) => {
-                  const isActive = item.id === activeTaskId;
+                history.slice(0, 6).map((item) => {
+                  const isActive = item.response.taskId === activeTaskId;
                   return (
                     <div
                       key={item.id}
-                      className={`group flex items-center justify-between px-space-sm py-[5px] rounded transition-colors ${
+                      onClick={() => {
+                        onSelectHistoryItem(item);
+                        onTabChange("research");
+                        onCloseMobile();
+                      }}
+                      className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
                         isActive
                           ? "bg-surface-container-high text-on-surface font-medium"
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
                       }`}
                     >
-                      <button
-                        onClick={() => {
-                          onSelectHistoryItem(item);
-                          onCloseMobile();
-                        }}
-                        className="truncate text-left flex-1 font-body-sm text-[12px]"
-                        title={item.query}
-                        type="button"
-                      >
-                        <span className="truncate block">{item.query}</span>
-                      </button>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Clock className="w-3 h-3 text-outline shrink-0" />
+                        <span className="truncate">{item.query}</span>
+                      </div>
                       <button
                         onClick={(e) => onDeleteHistoryItem(item.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-outline hover:text-error transition-all"
-                        title="Delete session"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-outline hover:text-error rounded transition-opacity"
+                        title="Delete query"
                         type="button"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -245,23 +251,21 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* User Card */}
-        <div className="p-space-xs border-t border-outline-variant/30">
-          <div className="flex items-center justify-between p-space-sm rounded hover:bg-surface-container transition-colors cursor-pointer">
-            <div className="flex items-center gap-space-sm">
-              <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
-                <User className="w-4 h-4 text-on-primary-container" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-md text-label-md text-on-surface leading-none">
-                  Apex Global
-                </span>
-                <span className="font-mono-sm text-mono-sm text-outline leading-none mt-1">
-                  Local Workspace
-                </span>
-              </div>
+        {/* Footer: TinyFish Engine Info & Wallet Status */}
+        <div className="mt-auto pt-3 border-t border-outline-variant/30 px-space-sm space-y-2">
+          <div className="p-2.5 rounded-xl bg-surface-container border border-outline-variant/30 text-xs space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-on-surface flex items-center gap-1.5">
+                <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+                TinyFish Connected
+              </span>
+              <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950/40 px-1 py-0.5 rounded border border-emerald-800/40">
+                $17.00
+              </span>
             </div>
-            <span className="w-2 h-2 rounded-full bg-secondary" title="Workspace active" />
+            <p className="text-[10px] text-outline leading-tight">
+              Search • Fetch • TinyMonitor
+            </p>
           </div>
         </div>
       </aside>
