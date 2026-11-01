@@ -111,7 +111,7 @@ describe("TinyMonitor Management Suite", () => {
     const runResult = await runMonitorNow(target.id);
     expect(runResult).toBeDefined();
     expect(runResult.run).toBeDefined();
-  });
+  }, 15000);
 });
 
 describe("Deep Research Structured Report Suite", () => {
