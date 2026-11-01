@@ -1,0 +1,375 @@
+### OMNIDESK: MASTER ARCHITECTURE & EXECUTION BLUEPRINT
+
+**TO:** Thambiis (Founding Engineering Team)
+**FROM:** Founding CTO / Principal AI Architect
+**SUBJECT:** OmniDesk P0 Execution Strategy, Architecture, and Agent Contracts
+**EVENT:** Swim with TinyFish Hackathon
+
+---
+
+## PHASE 1: RESEARCH & STRATEGIC DECISIONS
+
+### 1. Product Assessment & Differentiation
+OmniDesk is not a search engine wrapper; it is an **Action-Oriented Orchestration Engine**. The "Chief of Staff" metaphor holds only if the system transitions from *information retrieval* to *decision preparation*. 
+*   **Weak Assumption Challenged:** Building a "Unified Priority Inbox" (P2) requires OAuth scopes, webhooks, and complex state synchronization for Gmail/WhatsApp. For a hackathon, this is a trap. It consumes 80% of the time for 20% of the demo value.
+*   **Differentiation:** Our differentiator is **Verifiable Synthesis**. By leveraging TinyFish's `highlights` feature (which extracts exact verbatim substrings from source pages), we eliminate hallucinations regarding pricing, MOQs (Minimum Order Quantities), and delivery terms. If a fact isn't in the highlight, it doesn't exist in the database.
+
+### 2. TinyFish Capability Research (Verified Facts)
+I have audited the official TinyFish documentation, SDK, and cookbook patterns. Here are the technical constraints and cost realities:
+
+*   **Search API (`client.search.query`):** 
+    *   **Cost:** Free up to 12,000 requests/day. 
+    *   **Capability:** Returns ranked results (`title`, `url`, `snippet`). 
+    *   **Hackathon Strategy:** Use `purpose` parameter to bias results toward direct manufacturers rather than aggregators (e.g., IndiaMART).
+*   **Fetch API (`client.fetch.fetch`):** 
+    *   **Cost:** Free. 
+    *   **Capability:** Batches up to 10 URLs. Supports CSS selector scoping and, crucially, **Highlights** (Beta). 
+    *   **Hackathon Strategy:** `highlights: { query: "Extract MOQ, pricing, delivery terms", max_snippets: 5 }`. This guarantees we only process verbatim text, drastically reducing LLM token usage and hallucination risk.
+*   **Agent API (`client.agent.stream`):** 
+    *   **Cost:** $0.016 per step. **Not free.**
+    *   **Capability:** Full browser automation via natural language goals. 
+    *   **Hackathon Strategy:** **Fallback Only.** Use only if Fetch fails (e.g., 403 Forbidden/Bot Protection) or if the site is a complex SPA. We must implement a circuit breaker to prevent wallet drain.
+*   **SDK:** `@tiny-fish/sdk` is the official, typed TypeScript package. We will use this exclusively.
+*   **MCP:** Hosted MCP is for *development assistants* (Cursor, Claude Desktop) to control TinyFish during coding. It is **not** for our production backend.
+
+### 3. Architecture Decisions
+*   **Framework:** Next.js 15 (App Router). Server Actions and Route Handlers are sufficient. No separate backend microservices.
+*   **Language:** TypeScript (Strict Mode). 
+*   **UI:** Tailwind CSS + Shadcn UI. Fast, accessible, and hackathon-proven.
+*   **LLM Orchestration:** **Groq API** (Free Tier). Llama 3.3 70B or 3.1 8B. Groq provides sub-second inference which is critical for streaming progress to the user.
+*   **Persistence:** **Supabase (Free Tier)**. We need simple relational storage for `tasks` and `history`. It provides instant Auth and Postgres.
+*   **State Management:** Server-Sent Events (SSE) for streaming research progress from the backend to the frontend.
+
+### 4. Critical Risks & Feasibility
+*   **Risk:** Supplier websites often have aggressive bot protection (Cloudflare, Akamai). 
+    *   **Mitigation:** The Fetch API handles rendering, but if it fails, the UI must gracefully degrade to "Source unavailable, manual review required" rather than crashing.
+*   **Risk:** LLM JSON parsing failures.
+    *   **Mitigation:** Strict Zod schema validation on all LLM outputs. Retry logic (max 2 attempts) with temperature adjustment.
+
+---
+
+## PHASE 2: SYSTEM DESIGN
+
+### 1. System Architecture Diagram
+
+```mermaid
+sequenceDiagram
+    participant User as User (Frontend)
+    participant API as Next.js API Route
+    participant LLM as Groq (Llama 3.3)
+    participant TF as TinyFish SDK
+    participant DB as Supabase
+
+    User->>API: POST /api/research (SSE)
+    API->>LLM: Extract Intent & Queries
+    LLM-->>API: { queries: ["packaging suppliers Bengaluru"] }
+    
+    loop Parallel Search
+        API->>TF: search.query(...)
+        TF-->>API: Raw URLs
+    end
+    
+    API->>API: Deduplicate & Filter Aggregators
+    
+    loop Parallel Fetch (Batch 10)
+        API->>TF: fetch.fetch(urls, highlights)
+        TF-->>API: Markdown + Verbatim Highlights
+    end
+    
+    API->>LLM: Synthesize, Rank, Draft Email (JSON Mode)
+    LLM-->>API: Structured Findings & Recommendations
+    
+    API->>DB: Save Task Record
+    API-->>User: Stream SSE Events (Progress, Findings, Draft)
+```
+
+### 2. Component Boundaries
+1.  **Frontend (Workstream B):** React components, SSE client hook (`useResearchStream`), Approval UI. No business logic.
+2.  **Orchestrator (Workstream A):** Next.js Route Handlers. Manages the pipeline: Intent -> Search -> Fetch -> Synthesize.
+3.  **Adapters (Workstream A):** `tinyfish-adapter.ts` wraps the SDK. `llm-adapter.ts` wraps Groq.
+4.  **Contracts (Workstream C):** Shared `types.ts` file defining Zod schemas.
+
+### 3. Database Schema (Minimal MVP)
+```sql
+-- Supabase Migration
+create table research_tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  prompt text not null,
+  status text check (status in ('pending', 'researching', 'synthesizing', 'completed', 'failed')) default 'pending',
+  findings jsonb,
+  recommendations jsonb,
+  draft_email jsonb,
+  sources jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+```
+
+### 4. Security & Approval Model
+*   **Zero-Trust Execution:** The LLM *never* sends an email. It only generates a `mailto:` link or copies text to the clipboard.
+*   **Server-Side Secrets:** `TINYFISH_API_KEY` and `GROQ_API_KEY` live in `.env.local` (backend only). Never expose to the client.
+*   **Highlight Validation:** The UI will display the exact `highlights` string returned by TinyFish next to the LLM's claim. If the highlight is missing, the claim is flagged as "Unverified".
+
+---
+
+## PHASE 3: DOCUMENTATION PACKAGE
+
+*Below is the complete content for your repository files. Create these exact files and paths.*
+
+### 1. `README.md`
+```markdown
+# OmniDesk: The AI Chief of Staff
+
+OmniDesk is an agentic workspace that transitions founders from manual research to verified decision-making. Built for the **Swim with TinyFish Hackathon**.
+
+## 🚀 Core Capabilities (MVP)
+- **Deep Web Research:** Multi-source supplier discovery using TinyFish Search & Fetch.
+- **Verifiable Synthesis:** LLM reasoning grounded in exact webpage highlights (Zero Hallucination).
+- **Action Preparation:** Automated drafting of outreach emails based on comparative analysis.
+- **Human-in-the-Loop:** All external actions require explicit user approval.
+
+## 🛠 Tech Stack
+- **Framework:** Next.js 15 (App Router), TypeScript
+- **AI & Orchestration:** TinyFish SDK, Groq (Llama 3.3), Zod
+- **UI:** Tailwind CSS, Shadcn UI
+- **Database:** Supabase (Postgres)
+
+## 🏗 Architecture
+See [docs/SOFTWARE_ARCHITECTURE.md](./docs/SOFTWARE_ARCHITECTURE.md) for the system design and data flow.
+
+## 📂 Project Structure
+- `docs/`: Product brief, architecture, and contracts.
+- `tasks/`: Agent-specific execution plans.
+- `src/app/api/`: Backend orchestration and TinyFish adapters.
+- `src/components/`: Frontend UI and SSE streaming hooks.
+```
+
+### 2. `AGENTS.md`
+```markdown
+# Agent Instructions (Universal)
+
+You are an expert TypeScript/Next.js engineer building OmniDesk.
+1. **Read First:** Always read `docs/API_CONTRACTS.md` and `docs/TINYFISH_INTEGRATION.md` before writing code.
+2. **Type Safety:** Use Zod for all external data validation (LLM outputs, API responses).
+3. **No Mocks in Prod:** Do not mock TinyFish API calls. Use the real SDK with proper error handling.
+4. **Security:** Never commit API keys. Use `process.env.TINYFISH_API_KEY`.
+5. **Streaming:** Use Server-Sent Events (SSE) for long-running research tasks. Do not block the main thread.
+```
+
+### 3. `docs/MVP_SCOPE.md`
+```markdown
+# MVP Scope: Supplier Sourcing Workflow
+
+## The Problem
+Founders waste hours manually checking packaging supplier websites, comparing MOQs, and drafting inquiry emails.
+
+## The Solution (P0)
+1. User inputs: "Find 5 reliable packaging suppliers in Bengaluru for a small D2C brand. Compare MOQ, pricing, and delivery."
+2. System extracts intent and generates targeted search queries.
+3. TinyFish Search discovers candidates.
+4. TinyFish Fetch extracts verbatim highlights (MOQ, pricing) from top candidates.
+5. LLM ranks candidates and drafts an inquiry email.
+6. User reviews sources and approves the email draft.
+
+## Out of Scope for Hackathon
+- Unified Inbox (Gmail/WhatsApp integration).
+- Autonomous Web Agent (Form filling/purchasing).
+- Multi-user team collaboration.
+```
+
+### 4. `docs/TINYFISH_INTEGRATION.md`
+```markdown
+# TinyFish Integration Strategy
+
+## Cost-Aware Pipeline
+We strictly follow this sequence to maintain ₹0 budget:
+1. **Search API:** `client.search.query()` (Free, 12k/day).
+2. **Fetch API:** `client.fetch.fetch()` (Free). Use `highlights` for fact extraction.
+3. **Agent API:** `client.agent.stream()` ($0.016/step). **Fallback only** if Fetch returns 403/Empty.
+
+## Implementation Pattern
+```typescript
+import { TinyFish } from "@tiny-fish/sdk";
+const tf = new TinyFish({ apiKey: process.env.TINYFISH_API_KEY! });
+
+export async function extractData(urls: string[], goal: string) {
+  const res = await tf.fetch.fetch({
+    urls,
+    format: "markdown",
+    highlights: { query: goal, max_snippets: 3 } // Crucial for grounding
+  });
+  
+  if (res.errors && res.errors.length > 0) {
+    // Fallback to Agent API for failed URLs
+    return await runAgentFallback(res.errors, goal);
+  }
+  return res.results;
+}
+```
+```
+
+### 5. `docs/API_CONTRACTS.md`
+```markdown
+# Data Contracts (TypeScript/Zod)
+
+## ResearchRequest
+```typescript
+export const ResearchRequestSchema = z.object({
+  prompt: z.string().min(10),
+  mode: z.enum(['quick', 'standard', 'deep']).default('standard')
+});
+```
+
+## ResearchResponse (SSE Stream Events)
+```typescript
+export const ResearchEventSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("status"), message: z.string() }),
+  z.object({ type: z.literal("source"), data: z.object({ title: z.string(), url: z.string() }) }),
+  z.object({ type: z.literal("finding"), data: z.object({ supplier: z.string(), moq: z.string().nullable(), highlight: z.string() }) }),
+  z.object({ type: z.literal("complete"), data: z.object({ recommendations: z.array(z.any()), draft: z.string() }) })
+]);
+```
+```
+
+### 6. `docs/SOFTWARE_ARCHITECTURE.md`
+```markdown
+# Software Architecture
+
+## Directory Structure
+```text
+src/
+├── app/
+│   ├── api/research/route.ts  # Main Orchestrator
+│   ├── dashboard/page.tsx     # Main UI
+│   └── layout.tsx
+├── lib/
+│   ├── tinyfish/              # SDK wrappers
+│   ├── llm/                   # Groq wrappers & Prompts
+│   └── schemas/               # Zod definitions
+└── components/
+    ├── research/              # Results, StreamView
+    └── ui/                    # Shadcn
+```
+
+## Orchestration Flow
+1. `POST /api/research` receives prompt.
+2. Validates via `ResearchRequestSchema`.
+3. Calls `LLM.generatePlan(prompt)` -> Returns search queries.
+4. Calls `TinyFish.search(queries)` -> Deduplicates domains.
+5. Calls `TinyFish.fetch(urls, highlights)` -> Extracts facts.
+6. Calls `LLM.synthesize(facts)` -> Ranks and drafts email.
+7. Streams each step to client via `ReadableStream` (SSE).
+```
+
+### 7. `tasks/BACKEND_AGENT.md`
+```markdown
+# Backend Agent Task List
+
+## Objective
+Build the `/api/research` route, TinyFish adapters, and LLM orchestration.
+
+## Deliverables
+1. `src/lib/tinyfish/client.ts`: Initialize `@tiny-fish/sdk`.
+2. `src/lib/tinyfish/search.ts`: Wrapper for `search.query` with domain deduplication.
+3. `src/lib/tinyfish/fetch.ts`: Wrapper for `fetch.fetch` using `highlights`.
+4. `src/lib/llm/groq.ts`: Groq client setup with JSON mode.
+5. `src/app/api/research/route.ts`: The main SSE orchestrator.
+
+## Constraints
+- Use `zod` for all LLM output parsing.
+- Implement a 5-second timeout for LLM calls.
+- Stream progress events: `status`, `source_found`, `fetching`, `synthesizing`.
+```
+
+### 8. `tasks/FRONTEND_AGENT.md`
+```markdown
+# Frontend Agent Task List
+
+## Objective
+Build the Dashboard, Prompt Interface, and SSE Streaming View.
+
+## Deliverables
+1. `src/hooks/useResearchStream.ts`: Custom hook to consume SSE from `/api/research`.
+2. `src/components/research/PromptBox.tsx`: Input area with "Quick/Standard/Deep" toggles.
+3. `src/components/research/StreamView.tsx`: Real-time log of agent actions.
+4. `src/components/research/ResultsTable.tsx`: Comparison table of suppliers with "Verified" badges for highlights.
+5. `src/components/research/ActionPanel.tsx`: Email draft preview with "Copy to Clipboard" button.
+
+## Constraints
+- Use Shadcn UI components (`Card`, `Table`, `Badge`, `Button`).
+- Handle SSE connection drops gracefully.
+- Do not use `useEffect` for data fetching; use the stream hook.
+```
+
+### 9. `setup/GITHUB_SETUP.md`
+```bash
+# GitHub CLI Setup Commands
+
+# 1. Check Auth
+gh auth status
+
+# 2. Initialize Repo (if needed)
+git init
+git branch -M main
+
+# 3. Create Private Repo
+gh repo create omnidesk --private --source=. --push
+
+# 4. Add Planning Docs
+git add docs/ tasks/ setup/ README.md AGENTS.md
+git commit -m "chore: add master architecture and agent plans"
+git push -u origin main
+```
+```
+
+---
+
+## PHASE 4: HANDOFF & EXECUTION
+
+### Recommended First Task
+**Build the "Verifiable Fetcher" Adapter.** 
+Before building the UI or the complex orchestrator, prove that TinyFish Fetch with `highlights` can successfully extract an MOQ and Price from a known supplier URL and return it as a verbatim string. This validates the core technical differentiator of the product.
+
+### Exact Agent Prompts
+
+**For Backend Agent (Antigravity/OpenCode):**
+> "You are the Backend Architect for OmniDesk. Read `tasks/BACKEND_AGENT.md` and `docs/TINYFISH_INTEGRATION.md`. 
+> Implement `src/lib/tinyfish/fetch.ts`. It must accept an array of URLs and a `goal` string. It must call the `@tiny-fish/sdk` `fetch` method, strictly enabling the `highlights` feature with `format: 'markdown'`. 
+> Write a Vitest unit test that mocks the SDK response and verifies that the returned object contains the `highlights` array. Do not implement the full orchestrator yet. Commit to branch `feat/tinyfish-fetch`."
+
+**For Frontend Agent (Antigravity/OpenCode):**
+> "You are the Frontend Architect for OmniDesk. Read `tasks/FRONTEND_AGENT.md`. 
+> Initialize the Next.js 15 App Router project with TypeScript, Tailwind, and Shadcn UI. 
+> Implement `src/hooks/useResearchStream.ts`. This hook must accept a prompt, POST to `/api/research`, and parse the incoming Server-Sent Events (SSE) into a state array of `ResearchEvent` objects (defined in `docs/API_CONTRACTS.md`). 
+> Create a dummy `src/app/page.tsx` that uses this hook to display a simple timeline of events. Commit to branch `feat/sse-hook`."
+
+**For Integration/QA Agent (OpenCode/Freebuff):**
+> "You are the QA & Integration Lead. 
+> 1. Run `setup/GITHUB_SETUP.md` commands to initialize the repository structure.
+> 2. Create `.env.example` with `TINYFISH_API_KEY`, `GROQ_API_KEY`, and `NEXT_PUBLIC_SUPABASE_URL`.
+> 3. Verify that `pnpm install` succeeds and `pnpm build` passes with the empty scaffolding.
+> 4. Use Freebuff to find a free, high-quality open-source icon library (like Lucide) and configure it in the project. Commit to `main`."
+
+### Final Product Demo Script (60-90 Seconds)
+1.  **The Hook (0:00-0:15):** "Founders spend 40% of their time just finding out *who* to talk to. Meet OmniDesk, your AI Chief of Staff."
+2.  **The Input (0:15-0:30):** Show the user typing: *"Find 3 eco-friendly packaging suppliers in Bangalore under ₹5 per unit. Draft an intro email."*
+3.  **The Engine (0:30-0:50):** Show the UI streaming live: *"TinyFish Search: Found 14 candidates... Filtering aggregators... Fetching highlights from EcoPack.in... Verifying MOQ: 500 units."* (Show the verbatim highlight text popping up next to the claim).
+4.  **The Result (0:50-1:10):** Show the final comparison table. The top recommendation is highlighted green. The drafted email is ready.
+5.  **The Close (1:10-1:20):** User clicks "Copy Draft". "OmniDesk doesn't just search. It verifies, decides, and acts. Built with TinyFish."
+
+---
+
+## THE FINAL QUESTION
+
+**What is the strongest version of OmniDesk that three builders can realistically build, demonstrate and defend technically?**
+
+The strongest version is **not** a broad "do everything" assistant, but a **highly specialized, verifiable procurement agent**. By focusing entirely on the **Supplier Sourcing Workflow (P0)** and leveraging TinyFish's `highlights` feature, you solve the biggest problem in AI research: *trust*. 
+
+If you can prove to the judges that every price, MOQ, and delivery term displayed on your screen is an exact, clickable substring of the source website, you will win. A narrow, deeply integrated, and verifiable tool is infinitely more defensible than a broad, buggy "Unified Inbox" that relies on flaky OAuth scopes.
+
+**Exact First Implementation Milestone:**
+**The "Grounded Fetch" Pipeline.** 
+Before writing a single line of UI, build the backend adapter that takes a URL, uses TinyFish Fetch with `highlights`, and extracts a specific fact (e.g., "Minimum Order Quantity") using Groq JSON mode. 
+*Reason:* This validates the core technical risk (can we get clean, structured data from messy supplier sites for free?) and the core product value (can we prove it's real?). If this works, the rest of the app is just UI and orchestration. If it fails, you must pivot to the Agent API fallback immediately.
+
+**Execute the GitHub setup commands now and assign the agent prompts. Good luck, Thambiis.**
