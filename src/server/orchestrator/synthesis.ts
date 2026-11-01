@@ -176,8 +176,8 @@ Procurement Team`;
     sourceTitle: s.title || s.domain,
     domain: s.domain,
     snippet: s.contentExcerpt ? s.contentExcerpt.slice(0, 240) + "..." : "Retrieved via TinyFish Fetch.",
-    publishedAt: s.fetchedAt || now,
-    retrievedAt: now,
+    publishedAt: undefined, // Only actual verified article publication dates, never retrieval timestamp
+    retrievedAt: s.fetchedAt || now,
   }));
 
   const keyFindings: string[] = [
@@ -202,23 +202,24 @@ Procurement Team`;
 
   const statisticsAndEvidence: ResearchEvidenceItem[] = [];
   if (facts && facts.length > 0) {
-    facts.filter((f) => f.status === "found" && f.quote).forEach((f) => {
+    facts.filter((f) => f.status === "found" && f.quote && f.sourceUrl).forEach((f) => {
       statisticsAndEvidence.push({
         claim: `${f.field.replace("_", " ")}: ${f.value}`,
         value: String(f.value),
-        sourceUrl: f.sourceUrl || "https://example.com",
+        sourceUrl: f.sourceUrl!,
         sourceTitle: f.sourceTitle || "Verified Source",
         quote: f.quote,
       });
     });
   } else {
     comparison.forEach((c) => {
+      if (!c.website) return;
       Object.entries(c.facts).forEach(([k, v]) => {
         if (v && v !== "Not found") {
           statisticsAndEvidence.push({
             claim: `${c.name} — ${k.replace("_", " ")}`,
             value: v,
-            sourceUrl: c.website || "https://example.com",
+            sourceUrl: c.website!,
             sourceTitle: c.name,
           });
         }

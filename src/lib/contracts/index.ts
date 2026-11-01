@@ -43,7 +43,10 @@ export type ResearchMode = "quick" | "standard" | "deep";
 export const ResearchModeSchema = z.enum(["quick", "standard", "deep"]);
 
 export const ResearchRequestSchema = z.object({
-  prompt: z.string().min(1).max(2000),
+  prompt: z
+    .string()
+    .min(1, "Research prompt cannot be empty")
+    .max(12000, "Research prompt cannot exceed 12,000 characters"),
   mode: ResearchModeSchema.default("standard"),
   context: z
     .object({
@@ -69,9 +72,20 @@ export interface ExtractionField {
   enumValues?: string[];
 }
 
+export type ResearchIntent =
+  | "general"
+  | "company"
+  | "startup"
+  | "competitor"
+  | "supplier"
+  | "product"
+  | "market"
+  | "technology";
+
 export interface ResearchPlan {
   objective: string;
   entityType: "supplier" | "competitor" | "product" | "service" | "general";
+  intent?: ResearchIntent;
   queries: PlannedQuery[];
   extractionFields: ExtractionField[];
   comparisonCriteria: string[];
@@ -264,11 +278,15 @@ export interface ResearchResponse {
 export type ResearchStage =
   | "planning"
   | "searching"
-  | "ranking"
   | "fetching"
   | "extracting"
+  | "verifying"
+  | "ranking"
   | "synthesizing"
   | "drafting"
+  | "completed"
+  | "failed"
+  | "cancelled"
   | "done";
 
 export interface ProgressEventPayload {

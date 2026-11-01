@@ -160,10 +160,8 @@ export function extractGroundedSupplierFromSource(
   }
   if (!pMatchFound) {
     productField = {
-      value: constraints.targetFormat || "Standard manufacturer range",
-      status: "unverified",
-      sourceUrl: source.url,
-      sourceTitle: source.title,
+      value: null,
+      status: "not_found",
     };
   }
 
@@ -186,14 +184,32 @@ export function extractGroundedSupplierFromSource(
   }
 
   // 6. Location / Facility
-  let location = "Registered EU/Global Facility";
+  let location = "Not specified";
   const locRegex = /(?:plant|facility|headquarters|based\s+in|factory|manufacturing\s+unit)[:\s]+([A-Za-z\s,]+(?:plant|facility|DE|NL|FR|PL|ES|UK|IN)?)/i;
   const locMatch = content.match(locRegex);
   if (locMatch) {
-    location = locMatch[1].trim().slice(0, 30);
+    location = locMatch[1].trim().slice(0, 40);
   }
 
-  // 7. Spec sheet link
+  // 7. Credibility / Certifications (Extracted ONLY if explicitly cited on page)
+  let credibilityField: EvidenceField<string> = {
+    value: null,
+    status: "not_found",
+  };
+  const certRegex = /(ISO\s*9001|ISO\s*14001|BPA[-\s]?NI|FSC(?:-certified)?|BRCGS|HACCP|FDA\s+compliance|EC\s+1935\/2004)/i;
+  const certMatch = content.match(certRegex);
+  if (certMatch) {
+    credibilityField = {
+      value: certMatch[0],
+      status: "verified",
+      sourceUrl: source.url,
+      sourceTitle: source.title,
+      supportingQuote: extractQuote(content, certMatch.index || 0, certMatch[0].length),
+      retrievedAt,
+    };
+  }
+
+  // 8. Spec sheet link
   let specSheetUrl: string | undefined;
   let specSheetLabel: string | undefined;
   const pdfMatch = content.match(/(?:href=["'])([^"']+\.pdf)(?:["'])/i) ||
@@ -204,16 +220,24 @@ export function extractGroundedSupplierFromSource(
     specSheetLabel = (pdfMatch[1] || "spec-sheet.pdf").replace(/.*\/|\.pdf$/gi, "") + ".pdf";
   }
 
-  // Calculate constraint fit and score
-  const hasMoqViolation = moqField.status === "does_not_meet";
-  const constraintFit = hasMoqViolation ? "does_not_meet" : "meets";
+  // Calculate constraint fit honestly
+  let constraintFit: "meets" | "partial" | "does_not_meet" | "unknown" = "unknown";
+  if (constraints.maxMoq) {
+    if (moqField.status === "does_not_meet") {
+      constraintFit = "does_not_meet";
+    } else if (moqField.status === "verified") {
+      constraintFit = "meets";
+    } else {
+      constraintFit = "unknown";
+    }
+  } else {
+    constraintFit = moqField.status === "verified" ? "meets" : "unknown";
+  }
 
-  let foundCount = 0;
-  if (moqField.status === "verified") foundCount += 25;
-  if (pricingField.status === "verified") foundCount += 25;
-  if (deliveryField.status === "verified") foundCount += 20;
-  if (emailField.status === "verified") foundCount += 15;
-  if (productField.status === "verified") foundCount += 15;
+  // Calculate evidence score honestly (0 to 100 based on verified facts)
+  const trackedFields = [moqField, pricingField, deliveryField, emailField, productField, credibilityField];
+  const verifiedCount = trackedFields.filter((f) => f.status === "verified").length;
+  const evidenceScore = Math.round((verifiedCount / trackedFields.length) * 100);
 
   return {
     name,
@@ -225,16 +249,12 @@ export function extractGroundedSupplierFromSource(
     pricing: pricingField,
     moq: moqField,
     delivery: deliveryField,
-    credibility: {
-      value: "ISO / Industry standard",
-      status: "verified",
-      sourceUrl: source.url,
-    },
+    credibility: credibilityField,
     email: emailField,
     specSheetUrl,
     specSheetLabel,
     constraintFit,
-    evidenceScore: Math.min(100, Math.max(30, foundCount)),
+    evidenceScore,
   };
 }
 
@@ -307,6 +327,147 @@ export function convertCandidateToComparisonItem(
     specSheetUrl: candidate.specSheetUrl,
     specSheetLabel: candidate.specSheetLabel,
     evidenceFields,
+  };
+
+  return { item, facts };
+}
+
+export interface GroundedGeneralCandidate {
+  name: string;
+  website: string;
+  sourceId: string;
+  sourceTitle: string;
+  entityType: string;
+  location?: string;
+  keyFields: Record<string, EvidenceField<string>>;
+  evidenceScore: number;
+}
+
+export function extractGroundedGeneralEntityFromSource(
+  source: SourceDocument,
+  intent: string = "general"
+): GroundedGeneralCandidate | null {
+  const content = source.contentExcerpt || "";
+  if (content.length < 20 && source.status !== "ok") {
+    return null;
+  }
+
+  const name = cleanCompanyName(source.title, source.domain);
+  const retrievedAt = source.fetchedAt || new Date().toISOString();
+
+  // 1. Metric / Number extraction (funding, valuation, speed, performance, etc.)
+  let metricField: EvidenceField<string> = { value: null, status: "not_found" };
+  const numRegex = /(?:\$|€|₹|USD|EUR)\s*([0-9.,]+\s*(?:million|billion|M|B|k|crore)?)|(?:valued\s+at\s+[\$€₹][0-9.,]+\s*(?:million|billion|M|B)?)|(?:raised\s+[\$€₹][0-9.,]+\s*(?:million|billion|M|B)?)/i;
+  const numMatch = content.match(numRegex);
+  if (numMatch) {
+    metricField = {
+      value: numMatch[0].trim(),
+      status: "verified",
+      sourceUrl: source.url,
+      sourceTitle: source.title,
+      supportingQuote: extractQuote(content, numMatch.index || 0, numMatch[0].length),
+      retrievedAt,
+    };
+  }
+
+  // 2. Proposition / Key takeaway
+  let summaryField: EvidenceField<string> = { value: null, status: "not_found" };
+  const firstSentence = content.split(/[.\n]/).find((s) => s.trim().length > 30 && s.trim().length < 200);
+  if (firstSentence) {
+    summaryField = {
+      value: firstSentence.trim(),
+      status: "verified",
+      sourceUrl: source.url,
+      sourceTitle: source.title,
+      supportingQuote: firstSentence.trim(),
+      retrievedAt,
+    };
+  }
+
+  // 3. Date / Milestone
+  let dateField: EvidenceField<string> = { value: null, status: "not_found" };
+  const dateRegex = /\b(202[0-9]|Q[1-4]\s*202[0-9]|January|February|March|April|May|June|July|August|September|October|November|December\s+202[0-9])\b/i;
+  const dateMatch = content.match(dateRegex);
+  if (dateMatch) {
+    dateField = {
+      value: dateMatch[0].trim(),
+      status: "verified",
+      sourceUrl: source.url,
+      sourceTitle: source.title,
+      supportingQuote: extractQuote(content, dateMatch.index || 0, dateMatch[0].length),
+      retrievedAt,
+    };
+  }
+
+  const keyFields: Record<string, EvidenceField<string>> = {
+    key_findings: summaryField,
+    quantitative_data: metricField,
+    timeline_or_milestone: dateField,
+  };
+
+  const verifiedCount = Object.values(keyFields).filter((f) => f.status === "verified").length;
+  const evidenceScore = Math.round((verifiedCount / Object.keys(keyFields).length) * 100);
+
+  return {
+    name,
+    website: source.url,
+    sourceId: source.id,
+    sourceTitle: source.title,
+    entityType:
+      intent === "startup"
+        ? "Startup"
+        : intent === "competitor"
+        ? "Competitor"
+        : intent === "technology"
+        ? "Technology / Model"
+        : "Research Entity",
+    keyFields,
+    evidenceScore,
+  };
+}
+
+export function convertGeneralCandidateToComparisonItem(
+  candidate: GroundedGeneralCandidate,
+  index: number
+): {
+  item: ComparisonItem;
+  facts: ExtractedFact[];
+} {
+  const itemId = `c-${String(index + 1).padStart(2, "0")}`;
+  const facts: ExtractedFact[] = [];
+  const factsRecord: Record<string, string> = {};
+
+  for (const [key, field] of Object.entries(candidate.keyFields)) {
+    const factId = `f-${key}-${itemId}`;
+    const isFound = field.value !== null && field.status !== "not_found";
+
+    facts.push({
+      id: factId,
+      sourceId: candidate.sourceId,
+      field: key,
+      value: isFound ? field.value : null,
+      status: isFound ? "found" : "not_found",
+      quote: field.supportingQuote,
+      confidence: field.status === "verified" ? "high" : "low",
+      evidenceStatus: field.status,
+      sourceUrl: field.sourceUrl,
+      sourceTitle: field.sourceTitle,
+      retrievedAt: field.retrievedAt,
+    });
+
+    factsRecord[key] = isFound ? field.value! : "Not found";
+  }
+
+  const item: ComparisonItem = {
+    id: itemId,
+    name: candidate.name,
+    website: candidate.website,
+    sourceIds: [candidate.sourceId],
+    facts: factsRecord,
+    evidenceScore: candidate.evidenceScore,
+    constraintFit: candidate.evidenceScore > 0 ? "meets" : "unknown",
+    statusBadge: candidate.evidenceScore >= 60 ? "verified" : "missing_info",
+    evidenceFields: candidate.keyFields,
   };
 
   return { item, facts };

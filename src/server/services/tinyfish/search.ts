@@ -1,8 +1,8 @@
 import { getTinyFishClient } from "./client";
-import type { SearchResult } from "@/lib/contracts";
+import type { SearchResult, ResearchIntent } from "@/lib/contracts";
 
-export const BLOCKED_DOMAINS = new Set([
-  // B2B Aggregators & Generic Directories
+// B2B Aggregators & Generic Lead Directories
+export const B2B_DIRECTORY_DOMAINS = new Set([
   "indiamart.com",
   "tradeindia.com",
   "justdial.com",
@@ -13,8 +13,11 @@ export const BLOCKED_DOMAINS = new Set([
   "bharatbizs.com",
   "indiabizlist.com",
   "b2bmap.com",
-  
-  // Courier, Parcel & Logistics Aggregators (NOT packaging manufacturers)
+  "alibaba.com",
+]);
+
+// Courier & Logistics Services (Not product/packaging manufacturers)
+export const COURIER_LOGISTICS_DOMAINS = new Set([
   "porter.in",
   "delhivery.com",
   "bluedart.com",
@@ -31,42 +34,42 @@ export const BLOCKED_DOMAINS = new Set([
   "pickrr.com",
   "borzo.com",
   "blowhorn.com",
+]);
 
-  // Social & Community Platforms
+// Pure Social / Spam / Non-factual entertainment sites
+export const LOW_SIGNAL_SOCIAL_DOMAINS = new Set([
+  "pinterest.com",
+  "tumblr.com",
+  "tiktok.com",
+  "quora.com",
   "facebook.com",
   "instagram.com",
-  "linkedin.com",
-  "twitter.com",
-  "x.com",
-  "youtube.com",
-  "medium.com",
-  "quora.com",
-  "reddit.com",
-  "wikipedia.org",
-  "substack.com",
-  "pinterest.com",
-  "wordpress.com",
-  "blogspot.com",
-  "tumblr.com",
+]);
 
-  // Media, News, and Generic Listicle Publishers
-  "indiatoday.in",
-  "timesofindia.indiatimes.com",
-  "economictimes.indiatimes.com",
-  "ndtv.com",
-  "hindustantimes.com",
-  "livemint.com",
-  "thehindu.com",
-  "yourstory.com",
+// High-Value Editorial & News Publications (Great for General, Startup, Tech & Market Research)
+export const RESPECTED_EDITORIAL_DOMAINS = new Set([
+  "reuters.com",
+  "techcrunch.com",
+  "ycombinator.com",
+  "news.ycombinator.com",
+  "bloomberg.com",
+  "ft.com",
+  "wsj.com",
+  "economist.com",
+  "theverge.com",
+  "wired.com",
+  "arstechnica.com",
+  "venturebeat.com",
   "inc42.com",
+  "yourstory.com",
+  "livemint.com",
+  "economictimes.indiatimes.com",
   "forbes.com",
-  "entrepreneur.com",
-  "business-standard.com",
-
-  // E-commerce Consumer Marketplaces
-  "amazon.in",
-  "amazon.com",
-  "flipkart.com",
+  "fortune.com",
+  "stratechery.com",
+  "github.com",
+  "arxiv.org",
+  "wikipedia.org",
 ]);
 
 export const EDITORIAL_PATH_PATTERNS = [
@@ -83,14 +86,28 @@ export const EDITORIAL_PATH_PATTERNS = [
   /\/tag\//i,
 ];
 
-export function isBlockedDomain(hostname: string): boolean {
+export function isB2BDirectory(hostname: string): boolean {
   const cleanHost = hostname.toLowerCase().replace(/^www\./, "");
-  for (const blocked of BLOCKED_DOMAINS) {
-    if (cleanHost === blocked || cleanHost.endsWith("." + blocked)) {
+  for (const domain of B2B_DIRECTORY_DOMAINS) {
+    if (cleanHost === domain || cleanHost.endsWith("." + domain)) {
       return true;
     }
   }
   return false;
+}
+
+export function isCourierOrLogistics(hostname: string): boolean {
+  const cleanHost = hostname.toLowerCase().replace(/^www\./, "");
+  for (const domain of COURIER_LOGISTICS_DOMAINS) {
+    if (cleanHost === domain || cleanHost.endsWith("." + domain)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function isBlockedDomain(hostname: string): boolean {
+  return isB2BDirectory(hostname) || isCourierOrLogistics(hostname);
 }
 
 export function isEditorialUrl(urlString: string): boolean {
@@ -102,12 +119,23 @@ export function isEditorialUrl(urlString: string): boolean {
   }
 }
 
+export function isRespectedPublication(hostname: string): boolean {
+  const cleanHost = hostname.toLowerCase().replace(/^www\./, "");
+  for (const domain of RESPECTED_EDITORIAL_DOMAINS) {
+    if (cleanHost === domain || cleanHost.endsWith("." + domain)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export interface SearchOptions {
   query: string;
   queryId: string;
   location?: string;
   language?: string;
   purpose?: string;
+  intent?: ResearchIntent;
 }
 
 export async function executeSearch(options: SearchOptions): Promise<SearchResult[]> {
@@ -122,21 +150,27 @@ export async function executeSearch(options: SearchOptions): Promise<SearchResul
 
   const results: SearchResult[] = [];
   const seenDomains = new Set<string>();
+  const isSupplierIntent = options.intent === "supplier";
 
   for (const item of res.results) {
     try {
       const parsedUrl = new URL(item.url);
-      const hostname = parsedUrl.hostname.toLowerCase();
+      const hostname = parsedUrl.hostname.toLowerCase().replace(/^www\./, "");
 
-      // Filter aggregator directories, couriers, and social media
-      if (isBlockedDomain(hostname)) {
+      // 1. Always filter low-signal scrapers / spam
+      if (LOW_SIGNAL_SOCIAL_DOMAINS.has(hostname)) {
         continue;
       }
 
-      // Filter editorial blog/article paths
-      if (isEditorialUrl(item.url)) {
+      // 2. For supplier searches, couriers are irrelevant
+      if (isSupplierIntent && isCourierOrLogistics(hostname)) {
         continue;
       }
+
+      // 3. Mark characteristics
+      const isDirectory = isB2BDirectory(hostname);
+      const isArticle =
+        isEditorialUrl(item.url) || isRespectedPublication(hostname);
 
       // Deduplicate domains per query
       if (seenDomains.has(hostname)) {
@@ -152,6 +186,8 @@ export async function executeSearch(options: SearchOptions): Promise<SearchResul
         url: item.url,
         domain: hostname,
         snippet: item.snippet,
+        isArticle,
+        isDirectory,
       });
     } catch {
       // Ignore malformed URLs
@@ -163,13 +199,14 @@ export async function executeSearch(options: SearchOptions): Promise<SearchResul
 
 export async function searchWeb(
   query: string,
-  options?: { maxResults?: number; location?: string }
+  options?: { maxResults?: number; location?: string; intent?: ResearchIntent }
 ): Promise<SearchResult[]> {
   const queryId = `q-${Math.random().toString(36).substring(2, 8)}`;
   const list = await executeSearch({
     query,
     queryId,
     location: options?.location,
+    intent: options?.intent,
   });
   return options?.maxResults ? list.slice(0, options.maxResults) : list;
 }

@@ -131,6 +131,7 @@ export function qualifyCandidate(
 
 export interface ParsedConstraints {
   maxMoq?: number;
+  isStrictLessThan?: boolean;
   targetFormat?: string;
   certifications: string[];
   geography?: string;
@@ -141,6 +142,15 @@ export function parsePromptConstraints(prompt: string): ParsedConstraints {
   const constraints: ParsedConstraints = {
     certifications: [],
   };
+
+  // Check strict less than
+  const isStrictMatch =
+    /(?:moq|minimum\s+order(?:\s+quantity)?)\s*(?:<|below|under|less\s+than)\s*([0-9,]+)/i.test(prompt) ||
+    /(?:under|below|less\s+than)\s*([0-9,]+)\s*(k|m|thousand|million)?\s*(?:units?|moq|batch)/i.test(prompt);
+
+  if (isStrictMatch) {
+    constraints.isStrictLessThan = true;
+  }
 
   // MOQ detection: e.g. "MOQ < 50k", "MOQ < 50000", "under 50,000", "max MOQ 50k"
   const moqMatch =
@@ -200,7 +210,8 @@ export function parsePromptConstraints(prompt: string): ParsedConstraints {
 
 export function evaluateMoqCompliance(
   extractedMoq: string | null | undefined,
-  maxMoq: number | undefined
+  maxMoq: number | undefined,
+  isStrictLessThan: boolean = true
 ): {
   fit: "meets" | "does_not_meet" | "unknown";
   numericMoq?: number;
@@ -221,11 +232,13 @@ export function evaluateMoqCompliance(
   if (unit === "m" || unit === "million") multiplier = 1000000;
   const num = rawNum * multiplier;
 
-  if (num > maxMoq) {
+  const fails = isStrictLessThan ? num >= maxMoq : num > maxMoq;
+
+  if (fails) {
     return {
       fit: "does_not_meet",
       numericMoq: num,
-      reason: `MOQ of ${extractedMoq} exceeds target maximum of ${maxMoq.toLocaleString()} units`,
+      reason: `MOQ of ${extractedMoq} (${num.toLocaleString()}) exceeds target maximum of ${maxMoq.toLocaleString()} units`,
     };
   }
 
