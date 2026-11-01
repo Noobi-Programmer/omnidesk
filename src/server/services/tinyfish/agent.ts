@@ -21,7 +21,7 @@ export async function runAgentExtraction(
   const client = getTinyFishClient();
   const domain = new URL(url).hostname;
 
-  const goal = `You are on ${supplierName}'s website (${url}). Find and extract: product range, indicative pricing, minimum order quantity (MOQ), delivery terms and turnaround time, credibility signals (certifications like ISO, years in business, client roster), and contact details (email, phone, address). If any field is not stated on the site, return null for it. Never guess. Return ONLY the structured output.`;
+  const goal = `You are on ${supplierName}'s website (${url}). Find and extract: product range, indicative pricing, minimum order quantity (MOQ), delivery terms and turnaround time, credibility signals (certifications like ISO or FSC, years in business), and contact details (official email address, phone number, factory or office physical address). If any field is not stated on the site, return null for it. Never guess or fabricate. Return ONLY the structured output.`;
 
   const outputSchema = {
     type: "object",
@@ -31,9 +31,11 @@ export async function runAgentExtraction(
       moq: { type: "string", nullable: true },
       delivery: { type: "string", nullable: true },
       credibility: { type: "string", nullable: true },
-      contact: { type: "string", nullable: true },
+      email: { type: "string", nullable: true },
+      phone: { type: "string", nullable: true },
+      location: { type: "string", nullable: true },
     },
-    required: ["product_range", "pricing", "moq", "delivery", "credibility", "contact"],
+    required: ["product_range", "pricing", "moq", "delivery", "credibility", "email", "phone", "location"],
   };
 
   const source: SourceDocument = {
@@ -52,7 +54,8 @@ export async function runAgentExtraction(
       goal,
       output_schema: outputSchema,
       agent_config: {
-        max_duration_seconds: 60, // Bound strictly to protect Vercel timeout and wallet
+        max_duration_seconds: 90,
+        cursor_style: "fish",
       },
     });
 

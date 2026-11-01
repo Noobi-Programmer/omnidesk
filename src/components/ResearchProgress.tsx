@@ -115,7 +115,9 @@ export function ResearchProgress({
           <div className="bg-surface-container px-3 py-1.5 flex items-center justify-between font-mono-sm text-[11px] text-on-surface">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              <span>TinyFish Browser Agent Live Execution</span>
+              <span className="font-semibold text-primary">TinyFish Browser Agent</span>
+              <span className="text-outline-variant">•</span>
+              <span className="text-on-surface-variant">Live Execution (Powered by Mako)</span>
             </div>
             <a
               href={agentLiveUrl}
