@@ -129,6 +129,14 @@ export function isRespectedPublication(hostname: string): boolean {
   return false;
 }
 
+export function isAllowedEditorialDomain(hostname: string): boolean {
+  return isRespectedPublication(hostname);
+}
+
+export function isBlockedSupplierDomain(hostname: string): boolean {
+  return isBlockedDomain(hostname) || isCourierOrLogistics(hostname) || isB2BDirectory(hostname);
+}
+
 export interface SearchOptions {
   query: string;
   queryId: string;

@@ -26,7 +26,7 @@ export function Header({
   const greeting = profile?.name ? `Hello, ${profile.name.split(" ")[0]}` : "Workspace";
 
   return (
-    <header className="fixed top-0 left-0 lg:left-60 right-0 h-14 bg-surface/85 backdrop-blur-xl z-30 flex items-center justify-between px-4 lg:px-margin-desktop border-b border-outline-variant/30 transition-colors">
+    <header className="fixed top-0 left-0 lg:left-64 right-0 h-14 bg-surface/85 backdrop-blur-xl z-30 flex items-center justify-between px-4 lg:px-margin-desktop border-b border-outline-variant/30 transition-colors">
       {/* Left: Mobile hamburger & Breadcrumb */}
       <div className="flex items-center gap-space-sm">
         <button

@@ -122,7 +122,9 @@ export interface SourceDocument {
   retrievedVia: "search" | "user";
   fetchedVia: "fetch" | "agent" | "not_fetched";
   contentExcerpt?: string;
+  content?: string;
   fetchedAt?: string;
+  retrievedAt?: string;
   status: "pending" | "ok" | "degraded" | "failed";
   agentLiveUrl?: string;
   isArticle?: boolean;

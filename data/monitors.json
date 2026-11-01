@@ -1,0 +1,94 @@
+[
+  {
+    "id": "d45aea76-36e1-4eff-af01-f95d8dd17e1b",
+    "name": "Sovereign AI Compute Monitor",
+    "type": "search",
+    "config": {
+      "query": "sovereign AI compute cluster infrastructure funding",
+      "recency_minutes": 1440,
+      "result_limit": 5
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "active",
+    "webhook_url": null,
+    "created_at": "2026-11-01 09:58:25",
+    "last_error": null,
+    "updated_at": "2026-11-01T09:58:31.102Z",
+    "last_run_at": "2026-11-01T09:58:28.953Z"
+  },
+  {
+    "id": "98393b93-0fa4-41c2-b082-69e53d3dbabb",
+    "name": "Sovereign AI Compute Monitor",
+    "type": "search",
+    "config": {
+      "query": "sovereign AI compute cluster infrastructure funding",
+      "recency_minutes": 1440,
+      "result_limit": 5
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "active",
+    "webhook_url": null,
+    "created_at": "2026-11-01 09:58:22",
+    "last_error": null,
+    "updated_at": "2026-11-01T09:58:25.239Z"
+  },
+  {
+    "id": "mon-seed-1",
+    "name": "AI Startup Funding & Acquisitions",
+    "type": "search",
+    "config": {
+      "query": "AI startup funding announcements seed rounds acquisitions",
+      "recency_minutes": 1440,
+      "result_limit": 8
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "active",
+    "purpose": "Identify genuine new AI startup funding announcements, seed rounds, and tech acquisitions.",
+    "created_at": "2026-10-30T09:58:19.176Z",
+    "last_run_at": "2026-11-01T06:58:19.178Z"
+  },
+  {
+    "id": "mon-seed-2",
+    "name": "Y Combinator Blog & Company Announcements",
+    "type": "fetch",
+    "config": {
+      "url": "https://www.ycombinator.com/blog",
+      "format": "markdown"
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "active",
+    "purpose": "Identify newly published YC batch launches, founder essays, and accelerator announcements.",
+    "created_at": "2026-10-29T09:58:19.178Z",
+    "last_run_at": "2026-11-01T03:58:19.178Z"
+  },
+  {
+    "id": "mon-seed-3",
+    "name": "Reuters Global Tech & M&A Wire",
+    "type": "search",
+    "config": {
+      "query": "Reuters technology business M&A venture capital regulations",
+      "recency_minutes": 1440,
+      "result_limit": 8
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "active",
+    "purpose": "Track macroeconomic shifts, antitrust decisions, and global venture funding trends.",
+    "created_at": "2026-10-28T09:58:19.178Z",
+    "last_run_at": "2026-10-31T21:58:19.178Z"
+  },
+  {
+    "id": "mon-seed-4",
+    "name": "Indian D2C & Logistics Modernization",
+    "type": "search",
+    "config": {
+      "query": "India D2C manufacturing packaging Bengaluru startups",
+      "recency_minutes": 1440,
+      "result_limit": 6
+    },
+    "schedule_cron": "0 8 * * *",
+    "status": "paused",
+    "purpose": "Monitor manufacturing cluster shifts, minimum order policies, and supply chain tech in India.",
+    "created_at": "2026-10-27T09:58:19.178Z",
+    "last_run_at": "2026-10-31T09:58:19.178Z"
+  }
+]

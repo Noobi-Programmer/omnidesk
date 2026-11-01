@@ -1,0 +1,187 @@
+[
+  {
+    "id": "test-byte-1",
+    "title": "OpenAI Launches Autonomous Coding Engine",
+    "source": "TechCrunch",
+    "publishedAt": "2025-02-28",
+    "retrievedAt": "2026-11-01T09:58:19.246Z",
+    "url": "https://techcrunch.com/2025/02/openai-engine",
+    "summary": "OpenAI released new automated agent execution harness.",
+    "whyItMatters": "Directly impacts AI tooling.",
+    "categories": [
+      "AI & Technology",
+      "Product Launches"
+    ],
+    "relatedEntities": [
+      "OpenAI"
+    ]
+  },
+  {
+    "id": "sample-byte-8",
+    "title": "Indian D2C Logistics Surge: Bengaluru Industrial Hubs Cut Short-Run Mailer MOQs to 250 Units",
+    "source": "TechCrunch",
+    "author": "Manish Singh",
+    "publishedAt": "2025-02-24",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://techcrunch.com/2025/02/india-d2c-manufacturing-clusters",
+    "summary": "Digital die-cutting and on-demand flexographic printing in Karnataka's industrial clusters have enabled manufacturers to drop minimum order quantities from 5,000 to 250 boxes with 48-hour turnarounds.",
+    "whyItMatters": "Early-stage consumer startups can now order custom branded packaging on a weekly cadence without burning working capital on warehouse inventory.",
+    "categories": [
+      "Startups",
+      "Markets & Business"
+    ],
+    "relatedEntities": [
+      "D2C India",
+      "PrintPack",
+      "Peenya Industrial Cluster"
+    ]
+  },
+  {
+    "id": "sample-byte-7",
+    "title": "Stripe Launches Open-Source Financial Agent Protocol for Cross-Border B2B Invoicing",
+    "source": "Product Launches",
+    "author": "Patrick Collison",
+    "publishedAt": "2025-02-26",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://stripe.com/newsroom/news/agent-invoicing-protocol",
+    "summary": "Stripe unveiled an agentic protocol allowing software agents to negotiate commercial terms, draft purchase orders, and verify invoice receipts with programmable human-in-the-loop sign-offs.",
+    "whyItMatters": "Reduces invoice reconciliation cycles from 14 days to under 30 seconds for international procurement while keeping human CFOs in control of approvals.",
+    "categories": [
+      "Product Launches",
+      "Startups",
+      "Funding & VC"
+    ],
+    "relatedEntities": [
+      "Stripe",
+      "Patrick Collison",
+      "B2B Payments"
+    ]
+  },
+  {
+    "id": "sample-byte-6",
+    "title": "Ben Thompson: The Aggregation Theory of Agentic Discovery",
+    "source": "Stratechery",
+    "author": "Ben Thompson",
+    "publishedAt": "2025-02-27",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://stratechery.com/2025/aggregation-theory-agents",
+    "summary": "Search engines aggregated consumers to sell ad impressions; AI agents aggregate intent to directly transact and extract structured truth. The winners will own the verified verification layer, not the raw crawler.",
+    "whyItMatters": "SEO-driven affiliate farms and ad-heavy directories are losing traffic to headless web fetchers and multi-source research synthesizers.",
+    "categories": [
+      "Founder Insights",
+      "Markets & Business",
+      "AI & Technology"
+    ],
+    "relatedEntities": [
+      "Stratechery",
+      "Google",
+      "TinyFish",
+      "Perplexity"
+    ]
+  },
+  {
+    "id": "sample-byte-5",
+    "title": "European Commission Approves Standardized Food-Contact Packaging Directives (EC 1935/2004 Recertification)",
+    "source": "Reuters",
+    "author": "Philip Blenkinsop",
+    "publishedAt": "2025-02-25",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://eur-lex.europa.eu/food-contact-materials",
+    "summary": "New European environmental standards enforce strict BPA-NI (Non-Intent) coatings and mandatory digital product passports on all beverage canning and recycled paper mailers by Q3 2025.",
+    "whyItMatters": "D2C brands exporting or manufacturing in the EU must immediately verify batch-level conformity declarations from suppliers to avoid border customs retention.",
+    "categories": [
+      "Markets & Business",
+      "Startups"
+    ],
+    "relatedEntities": [
+      "European Commission",
+      "Envases",
+      "Ardagh Group",
+      "Ball Corporation"
+    ]
+  },
+  {
+    "id": "sample-byte-4",
+    "title": "Naval Ravikant on Autonomous Agent Economics: 'Permissionless Leverage at Marginal Zero Cost'",
+    "source": "X (Twitter)",
+    "author": "@naval",
+    "publishedAt": "2025-02-26",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://x.com/naval/status/1894728190",
+    "summary": "Code and media gave creators infinite distribution; autonomous agents give every founder infinite delegation. The new constraint is not headcount or runway, but taste, truth-seeking, and decision clarity.",
+    "whyItMatters": "Solopreneurs and small 3-person squads can now command the market output of legacy 50-person consulting and research bureaus by orchestrating specialized agent swarms.",
+    "categories": [
+      "Founder Insights",
+      "Startups"
+    ],
+    "relatedEntities": [
+      "Naval Ravikant",
+      "Solo Founders",
+      "Agentic Systems"
+    ]
+  },
+  {
+    "id": "sample-byte-3",
+    "title": "Reuters: Global Venture Funding Rebounds 22% Driven by Specialized AI Hardware and Energy",
+    "source": "Reuters",
+    "author": "Krystal Hu",
+    "publishedAt": "2025-02-27",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://www.reuters.com/technology/global-venture-funding-rebounds-2025",
+    "summary": "Global venture investment rebounded sharply in early 2025, with institutional capital concentrating on sovereign compute clusters, nuclear power for data centres, and vertically integrated industrial robotics.",
+    "whyItMatters": "Early-stage software valuations remain disciplined, but deep tech and infrastructure rounds are closing at historical speed with competitive multi-term sheet dynamics.",
+    "categories": [
+      "Funding & VC",
+      "Markets & Business"
+    ],
+    "relatedEntities": [
+      "Sequoia Capital",
+      "Andreessen Horowitz",
+      "Nvidia",
+      "SMR Nuclear"
+    ]
+  },
+  {
+    "id": "sample-byte-2",
+    "title": "Anthropic Releases Claude 3.7 Sonnet with Dynamic Reasoning Budgets",
+    "source": "Founder Blog",
+    "author": "Dario Amodei",
+    "publishedAt": "2025-02-24",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://www.anthropic.com/news/claude-3-7-sonnet",
+    "summary": "Anthropic introduced Claude 3.7 Sonnet, offering hybrid reasoning where API callers can dynamically dial reasoning tokens from zero up to 64k tokens per task.",
+    "whyItMatters": "Developers no longer need complex routing topologies between 'fast' models and 'thinking' models; single API calls can adaptively spend compute on difficult claims while answering easy ones instantly.",
+    "categories": [
+      "AI & Technology",
+      "Product Launches"
+    ],
+    "relatedEntities": [
+      "Anthropic",
+      "Claude",
+      "OpenAI o3-mini",
+      "DeepSeek R1"
+    ]
+  },
+  {
+    "id": "sample-byte-1",
+    "title": "Y Combinator W25 Batch Spotlight: AI Agents Shift from Chat to Action Workflows",
+    "source": "Y Combinator",
+    "author": "Garry Tan",
+    "publishedAt": "2025-02-28",
+    "retrievedAt": "2025-03-01T00:00:00.000Z",
+    "url": "https://www.ycombinator.com/blog/w25-agents",
+    "summary": "YC's latest batch showcases a decisive pivot from generative chat wrappers to autonomous background agents that execute end-to-end procurement, code migration, and compliance audits without human babysitting.",
+    "whyItMatters": "Founders who build verification-first, high-reliability agent loops with tight tool-use budgets are commanding higher enterprise ACVs compared to generic conversational assistants.",
+    "categories": [
+      "Startups",
+      "AI & Technology",
+      "Founder Insights"
+    ],
+    "relatedEntities": [
+      "Y Combinator",
+      "OpenAI",
+      "Anthropic",
+      "B2B SaaS"
+    ]
+  }
+]

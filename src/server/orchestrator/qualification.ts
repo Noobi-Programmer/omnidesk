@@ -209,41 +209,66 @@ export function parsePromptConstraints(prompt: string): ParsedConstraints {
 }
 
 export function evaluateMoqCompliance(
-  extractedMoq: string | null | undefined,
-  maxMoq: number | undefined,
-  isStrictLessThan: boolean = true
+  extractedMoq: string | number | null | undefined,
+  maxMoqOrConstraints?: number | { maxMoq?: number | null; isStrictLessThan?: boolean },
+  isStrictLessThanParam: boolean = true
 ): {
   fit: "meets" | "does_not_meet" | "unknown";
   numericMoq?: number;
   reason?: string;
+  compliant?: boolean;
 } {
-  if (!maxMoq) return { fit: "meets" };
-  if (!extractedMoq || extractedMoq.toLowerCase().includes("not found")) {
-    return { fit: "unknown", reason: "MOQ not publicly specified" };
+  let maxMoq: number | undefined;
+  let isStrictLessThan = isStrictLessThanParam;
+
+  if (typeof maxMoqOrConstraints === "object" && maxMoqOrConstraints !== null) {
+    maxMoq = maxMoqOrConstraints.maxMoq ?? undefined;
+    isStrictLessThan = maxMoqOrConstraints.isStrictLessThan ?? true;
+  } else if (typeof maxMoqOrConstraints === "number") {
+    maxMoq = maxMoqOrConstraints;
   }
 
-  const match = extractedMoq.match(/([0-9,]+)\s*(k|thousand|m|million)?/i);
-  if (!match) return { fit: "unknown" };
+  if (!maxMoq) return { fit: "meets", compliant: true };
+  if (extractedMoq === null || extractedMoq === undefined) {
+    return { fit: "unknown", reason: "MOQ not publicly specified", compliant: false };
+  }
 
-  const rawNum = parseFloat(match[1].replace(/,/g, ""));
-  const unit = (match[2] || "").toLowerCase();
-  let multiplier = 1;
-  if (unit === "k" || unit === "thousand") multiplier = 1000;
-  if (unit === "m" || unit === "million") multiplier = 1000000;
-  const num = rawNum * multiplier;
+  let num: number;
+  const strMoq = String(extractedMoq);
+
+  if (typeof extractedMoq === "number") {
+    num = extractedMoq;
+  } else {
+    if (strMoq.toLowerCase().includes("not found")) {
+      return { fit: "unknown", reason: "MOQ not publicly specified", compliant: false };
+    }
+    const match = strMoq.match(/([0-9,]+)\s*(k|thousand|m|million)?/i);
+    if (!match) return { fit: "unknown", compliant: false };
+
+    const rawNum = parseFloat(match[1].replace(/,/g, ""));
+    const unit = (match[2] || "").toLowerCase();
+    let multiplier = 1;
+    if (unit === "k" || unit === "thousand") multiplier = 1000;
+    if (unit === "m" || unit === "million") multiplier = 1000000;
+    num = rawNum * multiplier;
+  }
 
   const fails = isStrictLessThan ? num >= maxMoq : num > maxMoq;
 
   if (fails) {
     return {
       fit: "does_not_meet",
+      compliant: false,
       numericMoq: num,
-      reason: `MOQ of ${extractedMoq} (${num.toLocaleString()}) exceeds target maximum of ${maxMoq.toLocaleString()} units`,
+      reason: `MOQ of ${strMoq} (${num.toLocaleString()}) exceeds target maximum of ${maxMoq.toLocaleString()} units (strictly below ${maxMoq.toLocaleString()})`,
     };
   }
 
   return {
     fit: "meets",
+    compliant: true,
     numericMoq: num,
   };
 }
+
+export const parseResearchConstraints = parsePromptConstraints;

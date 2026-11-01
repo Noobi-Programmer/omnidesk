@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Check, ArrowRight, UserCheck } from "lucide-react";
+import { Sparkles, Check, ArrowRight, UserCheck, X } from "lucide-react";
 import type { UserProfile } from "@/lib/client/workspaceState";
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
   onComplete: (profile: UserProfile) => void;
+  onClose?: () => void;
   initialProfile?: UserProfile | null;
 }
 
@@ -35,6 +36,7 @@ const AVAILABLE_TOPICS = [
 export function ProfileSetupModal({
   isOpen,
   onComplete,
+  onClose,
   initialProfile,
 }: ProfileSetupModalProps) {
   const [name, setName] = useState(initialProfile?.name || "Neel");
@@ -98,9 +100,21 @@ export function ProfileSetupModal({
               </p>
             </div>
           </div>
-          <span className="font-mono-sm text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/30">
-            30 seconds
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono-sm text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/30 hidden sm:inline">
+              30 seconds
+            </span>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1 text-outline hover:text-on-surface hover:bg-surface-container rounded transition"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Form Body */}
@@ -234,16 +248,20 @@ export function ProfileSetupModal({
 
         {/* Footer */}
         <div className="px-space-lg py-space-sm bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-between">
-          <span className="font-mono-sm text-[11px] text-outline">
-            Editable anytime in Settings
-          </span>
           <button
             type="button"
             onClick={handleSave}
-            className="px-space-md py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-xs flex items-center gap-1.5 transition shadow-sm font-medium"
+            className="text-xs text-outline hover:text-on-surface transition font-medium"
+          >
+            Skip optional fields
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-space-md py-1.5 bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-xs flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            <span>Save &amp; Enter Workspace</span>
+            <span>Build My Workspace</span>
           </button>
         </div>
       </div>

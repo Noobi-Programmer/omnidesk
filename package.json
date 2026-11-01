@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "gate": "tsc --noEmit && vitest run && next build"
+    "test": "vitest run --fileParallelism=false",
+    "gate": "tsc --noEmit && vitest run --fileParallelism=false && next build"
   },
   "dependencies": {
     "@tiny-fish/sdk": "^0.11.0",

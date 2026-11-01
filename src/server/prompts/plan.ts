@@ -56,7 +56,11 @@ export function detectIntentFromPrompt(prompt: string): ResearchIntent {
     p.includes("algorithm") ||
     p.includes("ai agent") ||
     p.includes("llm") ||
-    p.includes("compute")
+    p.includes("compute") ||
+    p.includes("battery") ||
+    p.includes("energy") ||
+    p.includes("tech") ||
+    p.includes("roadmap")
   ) {
     return "technology";
   }
@@ -70,6 +74,34 @@ export function detectIntentFromPrompt(prompt: string): ResearchIntent {
   }
 
   return "general";
+}
+
+export function generateAdaptivePlan(request: ResearchRequest): ResearchPlan {
+  const intent = detectIntentFromPrompt(request.prompt);
+  const mode = request.mode || "standard";
+  const maxSearches = mode === "quick" ? 2 : mode === "deep" ? 5 : 3;
+
+  return {
+    objective: request.prompt,
+    entityType:
+      intent === "supplier"
+        ? "supplier"
+        : intent === "competitor"
+        ? "competitor"
+        : (intent as any),
+    intent,
+    queries: [
+      { id: "q1", query: request.prompt, purpose: "Primary investigation" },
+    ],
+    extractionFields: [],
+    comparisonCriteria: [],
+    actionHints: [],
+    budgets: {
+      maxSearches,
+      maxFetchUrls: maxSearches * 3,
+      maxAgentRuns: 0,
+    },
+  };
 }
 
 export function createPlanPrompt(request: ResearchRequest): { prompt: string; systemInstruction: string } {
