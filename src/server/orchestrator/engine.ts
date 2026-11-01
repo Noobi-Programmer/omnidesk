@@ -18,10 +18,17 @@ import { fetchPageContents } from "../services/tinyfish/fetch";
 import { runAgentExtraction } from "../services/tinyfish/agent";
 import { getLLMProvider } from "../services/llm";
 import { createPlanPrompt } from "../prompts/plan";
-import { createBatchExtractionPrompt } from "../prompts/extract";
-import { createSynthesisPrompt } from "../prompts/synthesize";
-import { createDraftActionPrompt } from "../prompts/draft";
 import { MockResearchEngine } from "../mock/engine";
+import {
+  qualifyCandidate,
+  parsePromptConstraints,
+} from "./qualification";
+import {
+  extractGroundedSupplierFromSource,
+  convertCandidateToComparisonItem,
+  type GroundedSupplierCandidate,
+} from "./extraction";
+import { synthesizeRecommendationsAndActions } from "./synthesis";
 
 export interface ResearchEngine {
   execute(
@@ -36,11 +43,12 @@ export class RealResearchEngine implements ResearchEngine {
     onEvent: (event: SseEventName, data: unknown) => void
   ): Promise<ResearchResponse> {
     const startTime = Date.now();
-    const taskId = `r-${Math.random().toString(36).substring(2, 9)}`;
+    const taskId = `QRY-${Math.floor(1000 + Math.random() * 9000)}`;
     const now = new Date().toISOString();
     const warnings: Warning[] = [];
 
-    const llm = getLLMProvider();
+    const mode = request.mode || "standard";
+    const constraints = parsePromptConstraints(request.prompt);
 
     // ----------------------------------------------------
     // STAGE 1: PLANNING
@@ -48,38 +56,74 @@ export class RealResearchEngine implements ResearchEngine {
     onEvent("progress", {
       stage: "planning",
       progress: 10,
-      message: "Decomposing research objective and planning search queries...",
+      message: "Decomposing research objective and parsing hard constraints...",
     });
 
-    const planPrompts = createPlanPrompt(request);
-    let plan: ResearchPlan;
-    try {
-      plan = await llm.complete<ResearchPlan>({
-        prompt: planPrompts.prompt,
-        systemInstruction: planPrompts.systemInstruction,
+    const maxSearches = mode === "quick" ? 2 : mode === "deep" ? 5 : 3;
+    const maxFetchUrls = mode === "quick" ? 4 : mode === "deep" ? 12 : 6;
+    const maxAgentRuns = mode === "deep" ? 2 : mode === "standard" ? 1 : 0;
+
+    // Build targeted search queries
+    const plannedQueries: Array<{ id: string; query: string; purpose: string }> = [];
+
+    const geoTerms = constraints.geography || (request.prompt.toLowerCase().includes("eu") ? "Europe" : "India");
+    const categoryTerms = constraints.category || "supplier manufacturer";
+
+    plannedQueries.push({
+      id: "q1",
+      query: `${request.prompt.replace(/[()<>,]/g, " ")} manufacturer`,
+      purpose: "Discover primary manufacturer websites",
+    });
+
+    if (constraints.targetFormat) {
+      plannedQueries.push({
+        id: "q2",
+        query: `${constraints.targetFormat} ${categoryTerms} plant ${geoTerms}`,
+        purpose: "Identify production lines and facility specifications",
       });
-    } catch {
-      // Resilient fallback plan
-      plan = {
-        objective: `Research options for: ${request.prompt}`,
-        entityType: "supplier",
-        queries: [
-          { id: "q1", query: `${request.prompt} supplier manufacturer`, purpose: "Discover websites" },
-          { id: "q2", query: `${request.prompt} MOQ pricing contact`, purpose: "Commercial details" },
-        ],
-        extractionFields: [
-          { key: "product_range", label: "Product Range", kind: "string" },
-          { key: "pricing", label: "Indicative Pricing", kind: "string" },
-          { key: "moq", label: "Minimum Order Quantity", kind: "string" },
-          { key: "delivery", label: "Delivery Terms", kind: "string" },
-          { key: "credibility", label: "Credibility", kind: "string" },
-          { key: "contact", label: "Contact Details", kind: "string" },
-        ],
-        comparisonCriteria: ["product_range", "pricing", "moq", "delivery", "credibility", "contact"],
-        actionHints: [{ type: "email", instruction: "Enquiry email" }],
-        budgets: { maxSearches: 4, maxFetchUrls: 10, maxAgentRuns: 1 },
-      };
+    } else {
+      plannedQueries.push({
+        id: "q2",
+        query: `${categoryTerms} commercial MOQ pricing contact ${geoTerms}`,
+        purpose: "Extract commercial terms and minimum order quantities",
+      });
     }
+
+    if (mode === "deep" || plannedQueries.length < maxSearches) {
+      plannedQueries.push({
+        id: "q3",
+        query: `${categoryTerms} certifications spec sheet PDF ${geoTerms}`,
+        purpose: "Technical specifications and regulatory compliance verification",
+      });
+    }
+
+    const plan: ResearchPlan = {
+      objective: `Identify, qualify, and compare ${categoryTerms} matching user specifications in ${geoTerms}`,
+      entityType: "supplier",
+      queries: plannedQueries.slice(0, maxSearches),
+      extractionFields: [
+        { key: "product_range", label: "Product Range", kind: "string" },
+        { key: "moq", label: "Minimum Order Quantity", kind: "string" },
+        { key: "pricing", label: "Pricing", kind: "string" },
+        { key: "delivery", label: "Delivery", kind: "string" },
+        { key: "credibility", label: "Certifications & Credibility", kind: "string" },
+        { key: "contact", label: "Direct Contact Desk", kind: "string" },
+      ],
+      comparisonCriteria: ["product_range", "moq", "pricing", "delivery", "credibility", "contact"],
+      actionHints: [{ type: "email", instruction: "Prepare supplier enquiry draft" }],
+      budgets: {
+        maxSearches,
+        maxFetchUrls,
+        maxAgentRuns,
+      },
+      category: constraints.category,
+      geography: constraints.geography,
+      hardConstraints: [
+        ...(constraints.maxMoq ? [`MOQ < ${constraints.maxMoq.toLocaleString()} units`] : []),
+        ...(constraints.targetFormat ? [`Format: ${constraints.targetFormat}`] : []),
+        ...constraints.certifications,
+      ],
+    };
 
     onEvent("plan", plan);
 
@@ -89,262 +133,191 @@ export class RealResearchEngine implements ResearchEngine {
     onEvent("progress", {
       stage: "searching",
       progress: 25,
-      message: `Searching live web via TinyFish (${plan.queries.length} queries)...`,
+      message: `Scanning live web via TinyFish Search (${plan.queries.length} targeted queries)...`,
     });
 
     const searchResults: SearchResult[] = [];
-    const searchPromises = plan.queries.slice(0, 3).map((q) =>
-      executeSearch({
-        query: q.query,
-        queryId: q.id,
-        location: request.context?.locale?.split("-")[1] || "IN",
-        purpose: q.purpose,
-      })
-    );
+    const searchLocation = constraints.geography?.includes("EU") ? "DE" : "IN";
 
-    const searchOutcomes = await Promise.allSettled(searchPromises);
-    for (const outcome of searchOutcomes) {
-      if (outcome.status === "fulfilled") {
-        searchResults.push(...outcome.value);
+    for (const q of plan.queries) {
+      try {
+        const queryResults = await executeSearch({
+          query: q.query,
+          queryId: q.id,
+          location: searchLocation,
+          purpose: q.purpose,
+        });
+        searchResults.push(...queryResults);
+      } catch (err) {
+        warnings.push({
+          code: "SEARCH_QUERY_FAILED",
+          message: `Query "${q.query}" failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       }
     }
 
     // ----------------------------------------------------
-    // STAGE 3: RANKING & DEDUPLICATION
+    // STAGE 3: ENTITY QUALIFICATION & FILTERING
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "ranking",
       progress: 40,
-      message: `Discovered ${searchResults.length} candidates. Filtering and ranking...`,
+      message: `Analyzing ${searchResults.length} candidates. Filtering articles, directories, and irrelevant domains...`,
     });
 
-    const uniqueCandidatesMap = new Map<string, SearchResult>();
+    const candidateDomains = new Map<string, { result: SearchResult; isArticle: boolean }>();
+    const referenceArticles: SearchResult[] = [];
+
     for (const res of searchResults) {
-      if (!uniqueCandidatesMap.has(res.domain)) {
-        uniqueCandidatesMap.set(res.domain, res);
+      if (candidateDomains.has(res.domain)) continue;
+
+      const qualification = qualifyCandidate(res.title, res.url, res.domain);
+      res.isArticle = qualification.isArticle;
+      res.isDirectory = qualification.isDirectory;
+
+      if (qualification.isArticle || qualification.isDirectory) {
+        referenceArticles.push(res);
+      } else {
+        candidateDomains.set(res.domain, { result: res, isArticle: false });
       }
     }
-    const topCandidates = Array.from(uniqueCandidatesMap.values()).slice(0, 5);
+
+    // Top qualified direct supplier domains to fetch
+    const qualifiedSuppliers = Array.from(candidateDomains.values())
+      .map((c) => c.result)
+      .slice(0, maxFetchUrls);
+
+    // Keep up to 2 reference articles for regulatory context
+    const urlsToFetch = [
+      ...qualifiedSuppliers.map((s) => s.url),
+      ...referenceArticles.slice(0, 2).map((a) => a.url),
+    ];
 
     // ----------------------------------------------------
-    // STAGE 4: FETCHING
+    // STAGE 4: FETCHING WEBPAGES
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "fetching",
       progress: 55,
-      message: `Fetching clean content from top ${topCandidates.length} candidate domains...`,
+      message: `Retrieving live site content from ${urlsToFetch.length} sources via TinyFish Fetch...`,
     });
 
-    const candidateUrls = topCandidates.map((c) => c.url);
-    const fetchOutcome = await fetchPageContents(candidateUrls);
+    const fetchOutcome = await fetchPageContents(urlsToFetch);
     const sources: SourceDocument[] = fetchOutcome.sources;
     warnings.push(...fetchOutcome.warnings);
 
+    // Mark articles on sources
     for (const s of sources) {
+      const isRef = referenceArticles.some((a) => a.domain === s.domain);
+      s.isArticle = isRef;
       onEvent("source", s);
     }
 
     // ----------------------------------------------------
-    // STAGE 5: AGENT ESCALATION (Optional)
+    // STAGE 5: AGENT ESCALATION (when justified)
     // ----------------------------------------------------
     let agentRunsCount = 0;
-    const failedSources = sources.filter((s) => s.status === "failed" || (s.contentExcerpt?.length || 0) < 100);
+    if (maxAgentRuns > 0 && process.env.OMNIDESK_AGENT_ENABLED !== "0") {
+      const degradedSupplierSource = sources.find(
+        (s) => !s.isArticle && (s.status === "failed" || (s.contentExcerpt?.length || 0) < 150)
+      );
 
-    if (failedSources.length > 0 && process.env.OMNIDESK_AGENT_ENABLED !== "0") {
-      const targetFailed = failedSources[0];
-      onEvent("progress", {
-        stage: "fetching",
-        progress: 65,
-        message: `Escalating to TinyFish browser agent for ${targetFailed.domain}...`,
-      });
-
-      try {
-        agentRunsCount++;
-        const agentResult = await runAgentExtraction(targetFailed.url, targetFailed.title, {
-          onStreamingUrl: (liveUrl) => {
-            onEvent("agent_live", {
-              sourceId: targetFailed.id,
-              url: targetFailed.url,
-              agentLiveUrl: liveUrl,
-            });
-          },
+      if (degradedSupplierSource) {
+        onEvent("progress", {
+          stage: "fetching",
+          progress: 68,
+          message: `Escalating to TinyFish browser agent for ${degradedSupplierSource.domain}...`,
         });
 
-        if (agentResult.success && agentResult.data) {
-          targetFailed.status = "ok";
-          targetFailed.fetchedVia = "agent";
-          targetFailed.contentExcerpt = JSON.stringify(agentResult.data);
+        try {
+          agentRunsCount++;
+          const agentResult = await runAgentExtraction(
+            degradedSupplierSource.url,
+            degradedSupplierSource.title,
+            {
+              onStreamingUrl: (liveUrl) => {
+                onEvent("agent_live", {
+                  sourceId: degradedSupplierSource.id,
+                  url: degradedSupplierSource.url,
+                  agentLiveUrl: liveUrl,
+                });
+              },
+            }
+          );
+
+          if (agentResult.success && agentResult.data) {
+            degradedSupplierSource.status = "ok";
+            degradedSupplierSource.fetchedVia = "agent";
+            degradedSupplierSource.contentExcerpt = JSON.stringify(agentResult.data);
+          }
+        } catch {
+          warnings.push({
+            code: "AGENT_ESCALATION_FAILED",
+            message: `Browser agent run failed for ${degradedSupplierSource.domain}`,
+          });
         }
-      } catch {
-        warnings.push({
-          code: "AGENT_ESCALATION_FAILED",
-          message: `Browser agent run failed for ${targetFailed.domain}`,
-        });
       }
     }
 
     // ----------------------------------------------------
-    // STAGE 6: EXTRACTION (Grounded Fact Mining)
+    // STAGE 6: FACT EXTRACTION & VERIFICATION
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "extracting",
-      progress: 75,
-      message: "Mining verified facts and exact verbatim quotations...",
+      progress: 78,
+      message: "Extracting verified product range, MOQ, pricing, and exact quotes...",
     });
 
-    const extractPrompts = createBatchExtractionPrompt(sources, plan.extractionFields);
-    let extractedSuppliers: Array<{
-      sourceId?: string;
-      name: string;
-      facts: Record<string, string | null>;
-      quotes?: Record<string, string>;
-    }> = [];
+    const extractedCandidates: GroundedSupplierCandidate[] = [];
+    const supplierSources = sources.filter((s) => !s.isArticle && s.status === "ok");
 
-    try {
-      const rawExtraction = await llm.complete<{
-        suppliers: typeof extractedSuppliers;
-      }>({
-        prompt: extractPrompts.prompt,
-        systemInstruction: extractPrompts.systemInstruction,
+    for (const src of supplierSources) {
+      const candidate = extractGroundedSupplierFromSource(src, constraints);
+      if (candidate) {
+        extractedCandidates.push(candidate);
+      }
+    }
+
+    // If fewer than 2 qualified entities found, explain honestly in warnings
+    if (extractedCandidates.length < 2) {
+      warnings.push({
+        code: "LOW_ENTITY_DENSITY",
+        message: "Fewer than 2 direct verified suppliers were discoverable from search results for this narrow criteria.",
       });
-      extractedSuppliers = rawExtraction.suppliers || [];
-    } catch {
-      // Fallback: create mock structure from available source titles
-      extractedSuppliers = sources.map((s) => ({
-        sourceId: s.id,
-        name: s.title,
-        facts: {
-          product_range: "Standard manufacturer catalogue",
-          pricing: null,
-          moq: "Contact for MOQ",
-          delivery: "Standard lead times apply",
-          credibility: "Verified registered company",
-          contact: s.url,
-        },
-      }));
     }
 
     const facts: ExtractedFact[] = [];
     const comparison: ComparisonItem[] = [];
 
-    for (let i = 0; i < extractedSuppliers.length; i++) {
-      const s = extractedSuppliers[i];
-      const matchingSource = sources.find((src) => src.id === s.sourceId) || sources[i];
-      const sourceId = matchingSource?.id || `s-${i}`;
-
-      const factRecord: Record<string, string> = {};
-      let foundCount = 0;
-
-      for (const [key, val] of Object.entries(s.facts)) {
-        const factId = `f-${Math.random().toString(36).substring(2, 9)}`;
-        const isFound = val !== null && val !== undefined && val !== "Not found";
-        if (isFound) foundCount++;
-
-        facts.push({
-          id: factId,
-          sourceId,
-          field: key,
-          value: isFound ? String(val) : null,
-          status: isFound ? "found" : "not_found",
-          quote: s.quotes?.[key] || undefined,
-          confidence: isFound ? "high" : "low",
-        });
-
-        factRecord[key] = isFound ? String(val) : "Not found";
-      }
-
-      comparison.push({
-        id: `c-0${i + 1}`,
-        name: s.name || matchingSource?.title || `Supplier ${i + 1}`,
-        website: matchingSource?.url,
-        sourceIds: [sourceId],
-        facts: factRecord,
-        evidenceScore: Math.min(100, Math.round((foundCount / Math.max(1, plan.extractionFields.length)) * 100)),
-      });
-    }
+    extractedCandidates.forEach((cand, idx) => {
+      const { item, facts: candidateFacts } = convertCandidateToComparisonItem(cand, idx);
+      comparison.push(item);
+      facts.push(...candidateFacts);
+    });
 
     // ----------------------------------------------------
-    // STAGE 7: SYNTHESIZING
+    // STAGE 7: SYNTHESIZING & RECOMMENDATIONS
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "synthesizing",
       progress: 88,
-      message: "Benchmarking options, ranking candidates, and flagging missing data...",
+      message: "Benchmarking options against constraints and generating executive decision...",
     });
 
-    const synthPrompts = createSynthesisPrompt(comparison, plan);
-    let recommendations: Recommendation[] = [];
-    let missingInfo: MissingInfo[] = [];
-
-    try {
-      const synthResult = await llm.complete<{
-        recommendations: Recommendation[];
-        missingInfo: MissingInfo[];
-      }>({
-        prompt: synthPrompts.prompt,
-        systemInstruction: synthPrompts.systemInstruction,
-      });
-      recommendations = synthResult.recommendations || [];
-      missingInfo = synthResult.missingInfo || [];
-    } catch {
-      recommendations = comparison.slice(0, 3).map((c, idx) => ({
-        rank: idx + 1,
-        itemId: c.id,
-        rationale: `Ranked #${idx + 1} with ${c.evidenceScore}% evidence confidence based on verified web disclosures.`,
-        risks: ["Verify direct commercial terms in writing."],
-        confidence: idx === 0 ? "high" : "medium",
-        supportedBy: [],
-      }));
-    }
+    const synthesis = synthesizeRecommendationsAndActions(comparison, plan);
+    const recommendations: Recommendation[] = synthesis.recommendations;
+    const missingInfo: MissingInfo[] = synthesis.missingInfo;
 
     // ----------------------------------------------------
-    // STAGE 8: DRAFTING
+    // STAGE 8: ACTION DRAFTING
     // ----------------------------------------------------
     onEvent("progress", {
       stage: "drafting",
-      progress: 95,
-      message: "Drafting supplier outreach email and follow-up task...",
+      progress: 96,
+      message: "Drafting verified supplier outreach and follow-up tasks...",
     });
 
-    const topRec = recommendations[0] || {
-      rank: 1,
-      itemId: comparison[0]?.id || "c-01",
-      rationale: "Top candidate based on available evidence",
-      risks: [],
-      confidence: "high" as const,
-      supportedBy: [],
-    };
-    const topSupplier = comparison.find((c) => c.id === topRec.itemId) || comparison[0];
-
-    let actionDrafts: ActionDraft[] = [];
-    if (topSupplier) {
-      const draftPrompts = createDraftActionPrompt(topRec, topSupplier, plan);
-      try {
-        const draftResult = await llm.complete<{ actionDrafts: ActionDraft[] }>({
-          prompt: draftPrompts.prompt,
-          systemInstruction: draftPrompts.systemInstruction,
-        });
-        actionDrafts = draftResult.actionDrafts || [];
-      } catch {
-        actionDrafts = [
-          {
-            id: "a-01",
-            type: "email",
-            title: `Enquiry to ${topSupplier.name}`,
-            payload: {
-              kind: "email",
-              to: null,
-              subject: `Enquiry: Custom Quotation for D2C Brand`,
-              body: `Hello ${topSupplier.name} Team,\n\nWe are looking for packaging partners in Bengaluru. Could you please share your latest catalogue and tiered price breaks?\n\nThank you.`,
-            },
-            riskLevel: "medium",
-            status: "awaiting_approval",
-            requiresApproval: true,
-            itemId: topSupplier.id,
-          },
-        ];
-      }
-    }
+    const actionDrafts: ActionDraft[] = synthesis.actionDrafts;
 
     const durationMs = Date.now() - startTime;
 
@@ -363,10 +336,10 @@ export class RealResearchEngine implements ResearchEngine {
       actionDrafts,
       stats: {
         durationMs,
-        searches: searchResults.length > 0 ? plan.queries.length : 0,
+        searches: plan.queries.length,
         urlsFetched: sources.length,
         agentRuns: agentRunsCount,
-        llmCalls: 4,
+        llmCalls: 0,
         sourcesOk: sources.filter((s) => s.status === "ok").length,
         sourcesFailed: sources.filter((s) => s.status === "failed").length,
       },

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface":"#111316","tertiary-fixed":"#ffddb8","tertiary-container":"#a36700","primary":"#bdc2ff","surface-container-low":"#1a1c1f","on-secondary":"#003824","secondary-fixed":"#6ffbbe","on-error-container":"#ffdad6","outline":"#908f9e","inverse-on-surface":"#2f3034","surface-tint":"#bdc2ff","on-secondary-fixed-variant":"#005236","outline-variant":"#454652","error-container":"#93000a","surface-bright":"#37393c","on-background":"#e2e2e6","on-secondary-container":"#00311f","secondary":"#4edea3","surface-variant":"#333538","on-surface-variant":"#c6c5d5","on-tertiary-container":"#fffaf9","on-tertiary-fixed":"#2a1700","secondary-fixed-dim":"#4edea3","on-error":"#690005","surface-container-lowest":"#0c0e11","on-primary-container":"#fdfaff","surface-container-high":"#282a2d","on-primary-fixed":"#000965","on-primary":"#121f8b","surface-dim":"#111316","inverse-primary":"#4854bb","on-tertiary":"#472a00","secondary-container":"#00a572","primary-fixed":"#dfe0ff","on-secondary-fixed":"#002113","error":"#ffb4ab","inverse-surface":"#e2e2e6","background":"#111316","on-primary-fixed-variant":"#2e3aa2","on-surface":"#e2e2e6","primary-container":"#5e6ad2","surface-container-highest":"#333538","tertiary-fixed-dim":"#ffb95f","surface-container":"#1e2023","primary-fixed-dim":"#bdc2ff","on-tertiary-fixed-variant":"#653e00","tertiary":"#ffb95f"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xs":"0.25rem","gutter-desktop":"1.5rem","space-md":"0.75rem","gutter":"1rem","space-lg":"1.25rem","space-xl":"2rem","margin":"1rem","margin-desktop":"2rem","space-sm":"0.5rem"},"fontFamily":{"body-sm":["Geist"],"headline-xl":["Geist"],"headline-lg":["Geist"],"mono-sm":["JetBrains Mono"],"headline-xl-mobile":["Geist"],"mono-md":["JetBrains Mono"],"headline-sm":["Geist"],"body-lg":["Geist"],"headline-md":["Geist"],"label-md":["Geist"],"body-md":["Geist"],"label-sm":["Geist"]},"fontSize":{"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"mono-sm":["11px",{"lineHeight":"16px","fontWeight":"400"}],"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.015em","fontWeight":"600"}],"mono-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"500"}],"body-lg":["15px",{"lineHeight":"24px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"500"}],"label-md":["13px",{"lineHeight":"16px","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}]}}}}</script></head><body class="bg-surface font-body-sm text-body-sm text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-60 bg-surface-container-lowest z-50 flex flex-col justify-between py-space-sm px-space-xs"><div class="flex flex-col gap-space-sm"><div class="flex items-center justify-between px-space-sm py-space-xs"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-medium">OmniDesk</span><span class="font-mono-sm text-mono-sm text-outline px-space-xs py-[1px] bg-surface-container rounded">v2.4</span></div><button class="flex items-center justify-center p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" title="Switch Workspace"><span class="material-symbols-outlined text-[16px]">unfold_more</span></button></div><div class="px-space-xs"><button class="w-full flex items-center justify-between px-space-sm py-space-xs bg-surface-container text-on-surface hover:bg-surface-container-high rounded transition-colors text-left"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[15px] text-primary">add</span><span class="font-label-md text-label-md">New Research</span></div><kbd class="font-mono-sm text-mono-sm text-outline bg-surface-container-lowest px-1 rounded">⌘K</kbd></button></div><nav class="flex flex-col gap-[2px] px-space-xs" data-active-classes="bg-surface-container-high text-on-surface font-medium"><a aria-current="page" class="flex items-center justify-between px-space-sm py-[6px] rounded transition-colors bg-surface-container-high text-on-surface font-medium" data-path="research" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">explore</span><span class="font-body-sm text-body-sm">Research</span></div></a><a class="flex items-center justify-between px-space-sm py-[6px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="inbox" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">inbox</span><span class="font-body-sm text-body-sm">Inbox</span></div><span class="font-mono-sm text-mono-sm text-outline">4</span></a><a class="flex items-center justify-between px-space-sm py-[6px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="tasks" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">check_circle</span><span class="font-body-sm text-body-sm">Tasks</span></div><span class="font-mono-sm text-mono-sm text-outline">12</span></a><a class="flex items-center justify-between px-space-sm py-[6px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="history" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">history</span><span class="font-body-sm text-body-sm">History</span></div></a></nav><div class="h-[1px] bg-surface-container mx-space-sm my-space-xs"></div><div class="flex flex-col gap-[2px] px-space-xs"><div class="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">Recent</div><nav class="flex flex-col gap-[1px]" data-active-classes="bg-surface-container-high text-on-surface font-medium"><a class="flex items-center px-space-sm py-[5px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors truncate" data-path="cold-brew-can-suppliers-eu" href="#"><span class="truncate font-body-sm text-body-sm">Cold brew can suppliers EU</span></a><a class="flex items-center px-space-sm py-[5px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors truncate" data-path="precision-aluminum-casing" href="#"><span class="truncate font-body-sm text-body-sm">Precision aluminum casing</span></a><a class="flex items-center px-space-sm py-[5px] rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors truncate" data-path="packaging-sustainability-audit" href="#"><span class="truncate font-body-sm text-body-sm">Packaging sustainability audit</span></a></nav></div></div><div class="p-space-xs"><div class="flex items-center justify-between p-space-sm rounded hover:bg-surface-container transition-colors cursor-pointer"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface leading-none">Apex Global</span><span class="font-mono-sm text-mono-sm text-outline leading-none mt-1">Enterprise Tier</span></div></div><span class="material-symbols-outlined text-[16px] text-outline">more_vert</span></div></div></aside><div class="pl-60"><header class="fixed top-0 left-60 right-0 h-14 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-margin-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-sm"><span class="font-label-md text-label-md text-outline">Workspace</span><span class="font-label-md text-label-md text-outline-variant">/</span><span class="font-label-md text-label-md text-on-surface">Intelligence</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-outline font-mono-sm text-mono-sm bg-surface-container-low px-space-sm py-[4px] rounded"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>SYNCED</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-14 min-h-screen bg-surface w-full px-margin-desktop py-space-xl"><div class="flex flex-col w-full">
+<div class="max-w-[1200px] w-full mx-auto flex flex-col gap-space-lg pb-space-xl">
+<!-- Top Query & Mode Input Canvas -->
+<div class="bg-surface-container-low rounded p-space-lg flex flex-col gap-space-md shadow-sm">
+<div class="flex items-center justify-between">
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">What would you like to get done?</h1>
+<div class="flex items-center gap-space-xs font-mono-sm text-mono-sm text-outline">
+<span>Target: EU/EMEA</span>
+<span class="text-outline-variant">/</span>
+<span>BPA-NI Compliance</span>
+</div>
+</div>
+<!-- Input Shell -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col gap-space-sm focus-within:bg-surface-container-high transition-colors">
+<textarea class="w-full bg-transparent resize-none outline-none font-body-md text-body-md text-on-surface placeholder:text-outline leading-relaxed" id="search-input" placeholder="Ask OmniDesk to research, compare or coordinate..." rows="2">Compare EU cold brew aluminum can suppliers (250ml slim, MOQ < 50k, recyclable liners)</textarea>
+<div class="flex items-center justify-between pt-space-xs">
+<!-- Modes -->
+<div class="flex items-center gap-[4px]" id="mode-selector">
+<button class="mode-btn px-space-sm py-[4px] rounded font-label-sm text-label-sm text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors" data-mode="quick" type="button">Quick</button>
+<button class="mode-btn px-space-sm py-[4px] rounded font-label-sm text-label-sm text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors" data-mode="standard" type="button">Standard</button>
+<button class="mode-btn px-space-sm py-[4px] rounded font-label-sm text-label-sm bg-surface-container-highest text-on-surface font-medium transition-colors" data-mode="deep" type="button">Deep (Active)</button>
+</div>
+<!-- Action -->
+<div class="flex items-center gap-space-sm">
+<span class="font-mono-sm text-mono-sm text-outline hidden sm:inline">⌘ + Enter to execute</span>
+<button class="px-space-md py-[6px] bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-md text-label-md flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">search</span>
+<span>Research</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Execution Status Line -->
+<div class="flex items-center justify-between px-space-xs font-mono-sm text-mono-sm text-outline">
+<div class="flex items-center gap-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-on-surface-variant font-medium">Completed in 4.2s</span>
+<span class="text-outline-variant">•</span>
+<span>14 supplier catalogs & registries scanned</span>
+<span class="text-outline-variant">•</span>
+<span>Updated 2m ago</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="text-outline">Scope: Raw Material Sourcing</span>
+<span class="px-space-xs py-[1px] bg-surface-container rounded text-outline-variant">ID: QRY-9042</span>
+</div>
+</div>
+<!-- Main Results Section -->
+<div class="flex flex-col gap-space-lg">
+<!-- Section Header -->
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Results: Cold Brew Can Suppliers EU</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Filtering on 250ml format, low batch tolerances, and BPA non-intent food contact certification.</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-sm py-[6px] bg-surface-container-low hover:bg-surface-container rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[15px]">tune</span>
+<span>Refine Criteria</span>
+</button>
+<button class="px-space-md py-[6px] bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-label-sm flex items-center gap-space-xs transition-colors shadow-sm" id="open-drawer-btn" type="button">
+<span class="material-symbols-outlined text-[16px]">forward_to_inbox</span>
+<span>Prepare enquiry</span>
+</button>
+</div>
+</div>
+<!-- Recommendation Summary Panel -->
+<div class="bg-surface-container-low rounded p-space-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Recommendation</span>
+<span class="font-mono-sm text-mono-sm text-outline">Deterministic extraction</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed max-w-4xl">
+          Partner with <strong class="text-on-surface font-medium">Envases Group (NL)</strong> for immediate scale with certified BPA-NI liners, or <strong class="text-on-surface font-medium">Ardagh Metal Packaging (DE)</strong> if sub-30k pilot batch flexibility is prioritized. Ball Beverage holds the lowest unit cost but strictly enforces 100k MOQ.
+        </p>
+</div>
+<!-- Comparison Data Grid -->
+<div class="bg-surface-container-low rounded overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface-container text-outline font-label-sm text-label-sm select-none">
+<th class="py-space-sm px-space-md font-medium">Supplier</th>
+<th class="py-space-sm px-space-md font-medium">Product range</th>
+<th class="py-space-sm px-space-md font-medium">MOQ</th>
+<th class="py-space-sm px-space-md font-medium">Pricing</th>
+<th class="py-space-sm px-space-md font-medium">Delivery</th>
+<th class="py-space-sm px-space-md font-medium">Status</th>
+<th class="py-space-sm px-space-md font-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-highest/30">
+<!-- Row 1: Envases -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Envases Group (NL)</span>
+<span class="font-mono-sm text-mono-sm text-outline">Deventer plant</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">
+                  250ml Slim, 330ml Sleek <span class="text-outline font-mono-sm">(BPA-NI)</span>
+</td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  25,000 units
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  €0.118 / unit
+                </td>
+<td class="py-space-sm px-space-md text-on-surface-variant font-mono-sm text-mono-sm">
+                  3–4 wks (Rotterdam)
+                </td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-xs py-[2px] rounded bg-secondary/10 text-secondary font-mono-sm text-mono-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Verified
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-space-xs">
+<a class="font-mono-sm text-mono-sm text-primary hover:underline inline-flex items-center gap-[2px]" href="#">
+<span>spec-sheet.pdf</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+<button class="p-1 text-outline hover:text-on-surface hover:bg-surface-container-high rounded transition-colors" onclick="selectDraft('supply-inquiry@envases.com', 'Envases Group', '25,000 units')" title="Draft to Envases" type="button">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Ardagh -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Ardagh Metal Packaging (DE)</span>
+<span class="font-mono-sm text-mono-sm text-outline">Bonn production line</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">
+                  250ml Slim <span class="text-outline font-mono-sm">(Standard & Organic liner)</span>
+</td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  20,000 units
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  €0.124 / unit
+                </td>
+<td class="py-space-sm px-space-md text-on-surface-variant font-mono-sm text-mono-sm">
+                  2–3 wks (Bonn)
+                </td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-xs py-[2px] rounded bg-secondary/10 text-secondary font-mono-sm text-mono-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Verified
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-space-xs">
+<a class="font-mono-sm text-mono-sm text-primary hover:underline inline-flex items-center gap-[2px]" href="#">
+<span>quote-ref-84</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+<button class="p-1 text-outline hover:text-on-surface hover:bg-surface-container-high rounded transition-colors" onclick="selectDraft('eu-sales@ardaghgroup.com', 'Ardagh Metal Packaging', '20,000 units')" title="Draft to Ardagh" type="button">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Ball Beverage -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Ball Beverage Packaging (FR)</span>
+<span class="font-mono-sm text-mono-sm text-outline">Mont facility</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">
+                  250ml, 355ml Sleek
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-tertiary">
+                  100,000 units
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  €0.098 / unit
+                </td>
+<td class="py-space-sm px-space-md text-on-surface-variant font-mono-sm text-mono-sm">
+                  5–6 wks
+                </td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-xs py-[2px] rounded bg-secondary/10 text-secondary font-mono-sm text-mono-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Verified
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="p-1 text-outline hover:text-on-surface hover:bg-surface-container-high rounded transition-colors" onclick="selectDraft('contract-eu@ball.com', 'Ball Beverage Packaging', '100,000 units')" title="Draft to Ball" type="button">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Canpack Nordic -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Canpack Nordic (PL)</span>
+<span class="font-mono-sm text-mono-sm text-outline">Kraków export</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">
+                  250ml Slim
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  30,000 units
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-outline">
+                  Not found
+                </td>
+<td class="py-space-sm px-space-md text-on-surface-variant font-mono-sm text-mono-sm">
+                  4 wks
+                </td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-xs py-[2px] rounded bg-surface-container-highest text-outline font-mono-sm text-mono-sm">
+                    Missing info
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<span class="font-mono-sm text-mono-sm text-outline-variant">—</span>
+</td>
+</tr>
+<!-- Row 5: Trivium Packaging -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Trivium Packaging (ES)</span>
+<span class="font-mono-sm text-mono-sm text-outline">Sevilla plant</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">
+                  250ml Aluminium Bottle/Can hybrid
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-outline">
+                  Not found
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-on-surface">
+                  €0.185 / unit
+                </td>
+<td class="py-space-sm px-space-md font-mono-sm text-mono-sm text-outline">
+                  Not found
+                </td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-xs py-[2px] rounded bg-surface-container-highest text-outline font-mono-sm text-mono-sm">
+                    Unverified
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<span class="font-mono-sm text-mono-sm text-outline-variant">—</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Sources Collapsible Section -->
+<div class="bg-surface-container-low rounded p-space-md flex flex-col gap-space-sm">
+<button class="flex items-center justify-between text-left w-full group" id="sources-toggle" type="button">
+<div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px] transition-transform duration-200" id="sources-chevron">expand_more</span>
+<span>Sources (4 primary registries)</span>
+</div>
+<span class="font-mono-sm text-mono-sm text-outline group-hover:text-on-surface-variant transition-colors">Cross-indexed</span>
+</button>
+<div class="flex flex-col gap-space-xs pt-space-xs pl-space-md" id="sources-content">
+<div class="flex items-baseline justify-between font-mono-sm text-mono-sm text-on-surface-variant hover:text-on-surface py-0.5">
+<span class="truncate">1. EUR-Lex Food Contact Aluminium Regulation (EC 1935/2004)</span>
+<a class="text-primary hover:underline ml-space-sm flex-shrink-0" href="#">eur-lex.europa.eu</a>
+</div>
+<div class="flex items-baseline justify-between font-mono-sm text-mono-sm text-on-surface-variant hover:text-on-surface py-0.5">
+<span class="truncate">2. Envases European Beverage Packaging Catalog Q3 2024</span>
+<span class="text-outline ml-space-sm flex-shrink-0">PDF doc / Verified index</span>
+</div>
+<div class="flex items-baseline justify-between font-mono-sm text-mono-sm text-on-surface-variant hover:text-on-surface py-0.5">
+<span class="truncate">3. Ardagh Beverage Can Spec Sheet v4.1 (Standard & Organic)</span>
+<span class="text-outline ml-space-sm flex-shrink-0">Direct registry extract</span>
+</div>
+<div class="flex items-baseline justify-between font-mono-sm text-mono-sm text-on-surface-variant hover:text-on-surface py-0.5">
+<span class="truncate">4. German Federal Packaging Registry (LUCID ID: DE4910283)</span>
+<a class="text-primary hover:underline ml-space-sm flex-shrink-0" href="#">verpackungsregister.org</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slide-over Drawer Backdrop & Panel -->
+<div class="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300 opacity-0 pointer-events-none" id="drawer-backdrop"></div>
+<div class="fixed top-0 right-0 h-full w-full max-w-[540px] bg-surface-container-low z-50 flex flex-col transform translate-x-full transition-transform duration-300 ease-out shadow-2xl" id="side-drawer">
+<!-- Drawer Header -->
+<div class="flex items-center justify-between px-space-lg py-space-md bg-surface-container">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">edit_note</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Supplier Enquiry Draft</span>
+</div>
+<button class="p-space-xs text-outline hover:text-on-surface hover:bg-surface-container-high rounded transition-colors" id="close-drawer-btn" title="Close Drawer" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Drawer Content Body -->
+<div class="flex-1 overflow-y-auto p-space-lg flex flex-col gap-space-md">
+<!-- Metadata Row: To -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline" for="draft-to">Recipient</label>
+<div class="flex items-center bg-surface-container rounded px-space-sm py-1.5 focus-within:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px] text-outline mr-space-xs">alternate_email</span>
+<input class="w-full bg-transparent font-mono-sm text-mono-sm text-on-surface outline-none" id="draft-to" type="text" value="supply-inquiry@envases.com"/>
+</div>
+</div>
+<!-- Metadata Row: Subject -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline" for="draft-subject">Subject</label>
+<div class="flex items-center bg-surface-container rounded px-space-sm py-1.5 focus-within:bg-surface-container-high transition-colors">
+<input class="w-full bg-transparent font-body-sm text-body-sm text-on-surface outline-none" id="draft-subject" type="text" value="Inquiry: 250ml Slim Can Supply & BPA-NI Certification"/>
+</div>
+</div>
+<!-- Context Tag / Specs Indicator -->
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container rounded font-mono-sm text-mono-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified</span>
+<span>Specs verified: 250ml Slim • Batch MOQ 25,000 • Ingot standard EN 602</span>
+</div>
+<!-- Editable Draft Body -->
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<label class="font-label-sm text-label-sm text-outline" for="draft-body">Message Body</label>
+<span class="font-mono-sm text-mono-sm text-outline">Markdown enabled</span>
+</div>
+<textarea class="w-full flex-1 bg-surface-container rounded p-space-sm font-mono-sm text-mono-sm text-on-surface outline-none resize-none leading-relaxed focus:bg-surface-container-high transition-colors" id="draft-body" rows="13">Dear Commercial Sales Team,
+
+We are conducting final qualification for 250ml slim aluminum cans suitable for RTD cold brew coffee distribution across the EU market.
+
+Could you please confirm the following technical and commercial terms based on your current production schedule:
+
+1. Pricing tier for initial trial run (25,000 units) vs scale volume (100,000 units).
+2. Guarantee of BPA non-intent (BPA-NI) certified internal epoxy or polymer liner suitable for high-nitrogen cold coffee matrices.
+3. Current lead time from Rotterdam / Deventer facilities for unprinted vs digitally sleeved batches.
+4. Packaging technical spec sheet and food contact conformity declarations under EC 1935/2004.
+
+We are ready to initiate testing samples upon confirmation.
+
+Best regards,
+Apex Global Procurement Team
+supply@apexglobal.internal</textarea>
+</div>
+<!-- Action confirmation banner (hidden by default) -->
+<div class="hidden px-space-sm py-1.5 bg-secondary/10 rounded text-secondary font-mono-sm text-mono-sm items-center gap-space-xs" id="copy-confirm">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+<span>Draft copied to clipboard</span>
+</div>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="px-space-lg py-space-md bg-surface-container flex items-center justify-between">
+<button class="px-space-md py-[6px] bg-surface-container-high hover:bg-surface-bright text-on-surface rounded font-label-sm text-label-sm flex items-center gap-space-xs transition-colors" id="copy-draft-btn" type="button">
+<span class="material-symbols-outlined text-[15px]">content_copy</span>
+<span>Copy Draft</span>
+</button>
+<div class="flex items-center gap-space-sm">
+<a class="px-space-md py-[6px] bg-primary-container hover:bg-[#6c78de] text-on-primary-container rounded font-label-sm text-label-sm flex items-center gap-space-xs transition-colors" href="mailto:supply-inquiry@envases.com?subject=Inquiry:%20250ml%20Slim%20Can%20Supply%20%26%20BPA-NI%20Certification" id="mail-link">
+<span class="material-symbols-outlined text-[15px]">send</span>
+<span>Open in Email</span>
+</a>
+</div>
+</div>
+</div>
+<script>
+    // Mode toggling
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeButtons.forEach(b => {
+          b.classList.remove('bg-surface-container-highest', 'text-on-surface', 'font-medium');
+          b.classList.add('text-outline');
+        });
+        btn.classList.add('bg-surface-container-highest', 'text-on-surface', 'font-medium');
+        btn.classList.remove('text-outline');
+      });
+    });
+
+    // Sources Collapsible
+    const sourcesToggle = document.getElementById('sources-toggle');
+    const sourcesContent = document.getElementById('sources-content');
+    const sourcesChevron = document.getElementById('sources-chevron');
+
+    sourcesToggle.addEventListener('click', () => {
+      const isHidden = sourcesContent.classList.contains('hidden');
+      if (isHidden) {
+        sourcesContent.classList.remove('hidden');
+        sourcesChevron.style.transform = 'rotate(0deg)';
+      } else {
+        sourcesContent.classList.add('hidden');
+        sourcesChevron.style.transform = 'rotate(-90deg)';
+      }
+    });
+
+    // Side Drawer logic
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    const sideDrawer = document.getElementById('side-drawer');
+    const openDrawerBtn = document.getElementById('open-drawer-btn');
+    const closeDrawerBtn = document.getElementById('close-drawer-btn');
+    const copyDraftBtn = document.getElementById('copy-draft-btn');
+    const copyConfirm = document.getElementById('copy-confirm');
+
+    function openDrawer() {
+      drawerBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+      drawerBackdrop.classList.add('opacity-100');
+      sideDrawer.classList.remove('translate-x-full');
+      sideDrawer.classList.add('translate-x-0');
+    }
+
+    function closeDrawer() {
+      drawerBackdrop.classList.remove('opacity-100');
+      drawerBackdrop.classList.add('opacity-0', 'pointer-events-none');
+      sideDrawer.classList.remove('translate-x-0');
+      sideDrawer.classList.add('translate-x-full');
+    }
+
+    openDrawerBtn.addEventListener('click', openDrawer);
+    closeDrawerBtn.addEventListener('click', closeDrawer);
+    drawerBackdrop.addEventListener('click', closeDrawer);
+
+    // Dynamic supplier draft selection from table rows
+    window.selectDraft = function(email, name, moq) {
+      document.getElementById('draft-to').value = email;
+      document.getElementById('draft-subject').value = `Inquiry: 250ml Slim Can Supply (${name}) - MOQ ${moq}`;
+      document.getElementById('mail-link').href = `mailto:${email}?subject=Inquiry:%20250ml%20Slim%20Can%20Supply%20${encodeURIComponent(name)}`;
+      openDrawer();
+    };
+
+    // Copy draft content
+    copyDraftBtn.addEventListener('click', () => {
+      const bodyText = document.getElementById('draft-body').value;
+      navigator.clipboard.writeText(bodyText).then(() => {
+        copyConfirm.classList.remove('hidden');
+        copyConfirm.classList.add('inline-flex');
+        setTimeout(() => {
+          copyConfirm.classList.add('hidden');
+          copyConfirm.classList.remove('inline-flex');
+        }, 2800);
+      });
+    });
+
+    // Keyboard shortcut helper for prompt box
+    document.getElementById('search-input').addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        openDrawer();
+      }
+    });
+  </script>
+</div></main></div></body></html>

@@ -1,32 +1,106 @@
 import { getTinyFishClient } from "./client";
 import type { SearchResult } from "@/lib/contracts";
 
-const BLOCKED_DOMAINS = new Set([
+export const BLOCKED_DOMAINS = new Set([
+  // B2B Aggregators & Generic Directories
   "indiamart.com",
-  "www.indiamart.com",
   "tradeindia.com",
-  "www.tradeindia.com",
   "justdial.com",
-  "www.justdial.com",
   "sulekha.com",
-  "www.sulekha.com",
   "yellowpages.in",
-  "www.yellowpages.in",
+  "dial4trade.com",
+  "exportersindia.com",
+  "bharatbizs.com",
+  "indiabizlist.com",
+  "b2bmap.com",
+  
+  // Courier, Parcel & Logistics Aggregators (NOT packaging manufacturers)
+  "porter.in",
+  "delhivery.com",
+  "bluedart.com",
+  "dtdc.in",
+  "dtdc.com",
+  "dunzo.com",
+  "shiprocket.in",
+  "shadowfax.in",
+  "xpressbees.com",
+  "ecomexpress.in",
+  "gati.com",
+  "safexpress.com",
+  "rivigo.com",
+  "pickrr.com",
+  "borzo.com",
+  "blowhorn.com",
+
+  // Social & Community Platforms
   "facebook.com",
-  "www.facebook.com",
   "instagram.com",
-  "www.instagram.com",
   "linkedin.com",
-  "www.linkedin.com",
   "twitter.com",
   "x.com",
   "youtube.com",
-  "www.youtube.com",
+  "medium.com",
+  "quora.com",
+  "reddit.com",
+  "wikipedia.org",
+  "substack.com",
+  "pinterest.com",
+  "wordpress.com",
+  "blogspot.com",
+  "tumblr.com",
+
+  // Media, News, and Generic Listicle Publishers
+  "indiatoday.in",
+  "timesofindia.indiatimes.com",
+  "economictimes.indiatimes.com",
+  "ndtv.com",
+  "hindustantimes.com",
+  "livemint.com",
+  "thehindu.com",
+  "yourstory.com",
+  "inc42.com",
+  "forbes.com",
+  "entrepreneur.com",
+  "business-standard.com",
+
+  // E-commerce Consumer Marketplaces
   "amazon.in",
-  "www.amazon.in",
+  "amazon.com",
   "flipkart.com",
-  "www.flipkart.com",
 ]);
+
+export const EDITORIAL_PATH_PATTERNS = [
+  /\/blog(\/|$)/i,
+  /\/blogs(\/|$)/i,
+  /\/news(\/|$)/i,
+  /\/article(\/|$)/i,
+  /\/articles(\/|$)/i,
+  /\/top-10/i,
+  /\/top-5/i,
+  /\/best-/i,
+  /\/list-of-/i,
+  /\/category\//i,
+  /\/tag\//i,
+];
+
+export function isBlockedDomain(hostname: string): boolean {
+  const cleanHost = hostname.toLowerCase().replace(/^www\./, "");
+  for (const blocked of BLOCKED_DOMAINS) {
+    if (cleanHost === blocked || cleanHost.endsWith("." + blocked)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function isEditorialUrl(urlString: string): boolean {
+  try {
+    const parsed = new URL(urlString);
+    return EDITORIAL_PATH_PATTERNS.some((pattern) => pattern.test(parsed.pathname));
+  } catch {
+    return false;
+  }
+}
 
 export interface SearchOptions {
   query: string;
@@ -54,8 +128,13 @@ export async function executeSearch(options: SearchOptions): Promise<SearchResul
       const parsedUrl = new URL(item.url);
       const hostname = parsedUrl.hostname.toLowerCase();
 
-      // Filter aggregator directories and social media
-      if (BLOCKED_DOMAINS.has(hostname) || Array.from(BLOCKED_DOMAINS).some((b) => hostname.endsWith("." + b))) {
+      // Filter aggregator directories, couriers, and social media
+      if (isBlockedDomain(hostname)) {
+        continue;
+      }
+
+      // Filter editorial blog/article paths
+      if (isEditorialUrl(item.url)) {
         continue;
       }
 

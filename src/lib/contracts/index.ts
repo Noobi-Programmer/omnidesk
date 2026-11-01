@@ -81,6 +81,10 @@ export interface ResearchPlan {
     maxFetchUrls: number;
     maxAgentRuns: number;
   };
+  category?: string;
+  geography?: string;
+  hardConstraints?: string[];
+  softPreferences?: string[];
 }
 
 export interface SearchResult {
@@ -91,6 +95,8 @@ export interface SearchResult {
   url: string;
   domain: string;
   snippet: string;
+  isArticle?: boolean;
+  isDirectory?: boolean;
 }
 
 export interface SourceDocument {
@@ -105,6 +111,20 @@ export interface SourceDocument {
   fetchedAt?: string;
   status: "pending" | "ok" | "degraded" | "failed";
   agentLiveUrl?: string;
+  isArticle?: boolean;
+  isDirectory?: boolean;
+}
+
+export type EvidenceStatus = "verified" | "unverified" | "not_found" | "does_not_meet";
+
+export interface EvidenceField<T = string> {
+  value: T | null;
+  status: EvidenceStatus;
+  sourceUrl?: string;
+  sourceTitle?: string;
+  supportingQuote?: string;
+  retrievedAt?: string;
+  constraintFit?: "meets" | "partial" | "does_not_meet" | "unknown";
 }
 
 export interface ExtractedFact {
@@ -115,6 +135,19 @@ export interface ExtractedFact {
   status: "found" | "not_found";
   quote?: string;
   confidence: "high" | "medium" | "low";
+  evidenceStatus?: EvidenceStatus;
+  sourceUrl?: string;
+  sourceTitle?: string;
+  retrievedAt?: string;
+  constraintViolated?: boolean;
+}
+
+export interface FactDetail {
+  value: string | null;
+  status: "found" | "not_found";
+  quote?: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
 }
 
 export interface ComparisonItem {
@@ -123,8 +156,23 @@ export interface ComparisonItem {
   website?: string;
   sourceIds: string[];
   facts: Record<string, string>; // fieldKey -> "value" | "Not found" | "Conflicting"
+  factDetails?: Record<string, FactDetail>;
   evidenceScore: number; // 0..100
+  evidenceSummary?: {
+    verifiedCount: number;
+    totalCount: number;
+  };
+  isQualifiedSupplier?: boolean;
+  qualificationReason?: string;
   redFlags?: string[];
+  entityType?: "manufacturer" | "supplier" | "distributor" | "other";
+  location?: string;
+  constraintFit?: "meets" | "partial" | "does_not_meet" | "unknown";
+  statusBadge?: "verified" | "unverified" | "missing_info" | "does_not_meet";
+  email?: string | null;
+  specSheetUrl?: string | null;
+  specSheetLabel?: string | null;
+  evidenceFields?: Record<string, EvidenceField<string>>;
 }
 
 export interface Recommendation {
@@ -134,6 +182,7 @@ export interface Recommendation {
   risks: string[];
   confidence: "high" | "medium" | "low";
   supportedBy: string[]; // factIds
+  compliesWithHardConstraints?: boolean;
 }
 
 export interface MissingInfo {
@@ -150,23 +199,28 @@ export interface Conflict {
 
 export type ActionStatus = "awaiting_approval" | "approved" | "dismissed";
 
+export interface EmailActionPayload {
+  kind: "email";
+  to: string | null;
+  subject: string;
+  body: string;
+  mailto?: string;
+  canSendDirectly?: boolean;
+  contactPageUrl?: string;
+  specsSummary?: string;
+}
+
+export interface TaskActionPayload {
+  kind: "task";
+  dueHint: string;
+  description: string;
+}
+
 export interface ActionDraft {
   id: string;
   type: "email" | "task";
   title: string;
-  payload:
-    | {
-        kind: "email";
-        to: string | null;
-        subject: string;
-        body: string;
-        mailto?: string;
-      }
-    | {
-        kind: "task";
-        dueHint: string;
-        description: string;
-      };
+  payload: EmailActionPayload | TaskActionPayload;
   riskLevel: "low" | "medium";
   status: ActionStatus;
   requiresApproval: true;
@@ -198,6 +252,8 @@ export interface ResearchResponse {
   actionDrafts: ActionDraft[];
   stats: ResearchStats;
   mock: boolean;
+  qualifiedCount?: number;
+  isSufficient?: boolean;
 }
 
 // ==========================================
@@ -257,4 +313,11 @@ export interface ActionDecisionResponse {
   status: ActionStatus;
   auditId: string;
   mailto?: string;
+}
+
+export interface ResearchHistoryItem {
+  id: string;
+  query: string;
+  createdAt: string;
+  response: ResearchResponse;
 }

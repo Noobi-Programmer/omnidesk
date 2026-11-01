@@ -4,14 +4,16 @@ export function createSynthesisPrompt(
   comparison: ComparisonItem[],
   plan: ResearchPlan
 ): { prompt: string; systemInstruction: string } {
-  const systemInstruction = `You are the Chief of Staff synthesizing comparative research for an executive.
+  const systemInstruction = `You are the Chief of Staff synthesizing comparative supplier research for an executive.
 Your job is to:
-1. Objectively rank the candidate entities based on fit for the objective.
-2. Identify distinct rationale and key business risks for each candidate.
-3. Explicitly identify critical missing information that the user must verify before buying/engaging.
-4. Output valid JSON only.`;
+1. Objectively rank ONLY qualified supplier/manufacturer entities based on empirical evidence and fit.
+2. Ground your rationale in verified facts (product range, local manufacturing facility, stated MOQs).
+3. If critical commercial terms (like pricing or MOQ) are not published, explicitly flag them as risks to verify.
+4. If fewer than 3 candidates are qualified suppliers, synthesize ONLY the qualified ones. NEVER invent or fabricate filler candidates.
+5. Output valid JSON only.`;
 
-  const comparisonJson = JSON.stringify(comparison, null, 2);
+  const qualifiedItems = comparison.filter((c) => c.isQualifiedSupplier);
+  const comparisonJson = JSON.stringify(qualifiedItems.length > 0 ? qualifiedItems : comparison, null, 2);
 
   const prompt = `OBJECTIVE: "${plan.objective}"
 COMPARISON CRITERIA: ${plan.comparisonCriteria.join(", ")}
@@ -25,8 +27,8 @@ Please synthesize recommendations and identify missing critical information. Ret
     {
       "rank": 1,
       "itemId": "c-...",
-      "rationale": "Clear executive rationale explaining why this is #1...",
-      "risks": ["Specific risk to confirm..."],
+      "rationale": "Clear executive rationale explaining fit based on verified facts and geography...",
+      "risks": ["Specific unverified item to confirm in writing..."],
       "confidence": "high" // "high" | "medium" | "low"
     }
   ],
