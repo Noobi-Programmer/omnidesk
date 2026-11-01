@@ -1,0 +1,412 @@
+OMNIDESK — UI/UX FLOW & USER EXPERIENCE GUIDELINES
+==================================================
+
+PURPOSE
+-------
+Build a clean, intuitive web experience for OmniDesk. The product should feel like a personal AI research workspace, not a complicated enterprise dashboard.
+
+OmniDesk's core promise:
+“Know what's happening. Research anything. Get things done.”
+
+The experience should guide a user through a simple journey:
+Public Landing Page → Sign up / Log in → Identify user type → (New user setup, only if needed) → Main Workspace.
+
+The most important UX principle is to reduce friction. A user should understand what OmniDesk does quickly, enter the workspace easily, and start researching without being forced through a long setup process.
+
+PRODUCT CONTEXT
+---------------
+OmniDesk combines three connected capabilities:
+
+1. FounderBrief — Personalized Intelligence Feed
+   - Shows relevant news, startup updates, funding rounds, competitor launches, AI tools, market trends, and product updates.
+   - Each update should appear as a compact card with a headline, short summary, source, date, and relevance to the user.
+   - A “Brief me” action opens a deeper research view explaining what happened, why it matters, possible implications or opportunities, and links to the original sources.
+
+2. OmniDesk AI PA — Personal Assistant
+   - A conversational assistant that helps users investigate questions, prepare reports, save findings, create tasks, and manage follow-ups.
+   - It should use the user's profile and saved context to make its help more relevant.
+   - Sensitive or consequential actions should ask for the user's approval before proceeding.
+
+3. Web Agent — Research, Compare, Execute
+   - Helps with deeper research across websites, product and competitor comparisons, company or market research, and selected multi-step web workflows.
+   - The user should remain in control of important actions. Payments and final purchases are always user-authorized.
+
+The main MVP experience should prioritize a personalized feed, a working “Brief me” research flow, evidence/source links, saving insights, and turning insights into follow-up tasks. Do not make every long-term capability look fully implemented if it is not part of the current build.
+
+DESIGN REFERENCE — CLAUDE CODE PAGE
+-----------------------------------
+Use the supplied Claude Code landing-page screenshot as a visual direction, not as a page to copy.
+
+What to take from the reference:
+- A restrained, premium-looking layout with generous spacing.
+- Dark background, high-contrast text, and a limited accent color.
+- A clear headline and short explanation on the left.
+- A strong product preview or workspace mockup on the right.
+- A simple navigation bar with very few choices.
+- One obvious primary call-to-action and one secondary action.
+- Product-focused messaging instead of long paragraphs.
+
+What NOT to copy:
+- Do not reuse Claude branding, logo, wording, or exact layout details.
+- Do not reproduce the cookie popup from the screenshot as a design element.
+- Do not overload the page with animations, gradients, floating elements, or decorative effects.
+
+Create an original OmniDesk visual identity. It should feel modern, focused, intelligent, and welcoming.
+
+GLOBAL UX RULES
+---------------
+1. Keep navigation and terminology consistent across all screens.
+2. Make the next step obvious. Avoid presenting too many choices at once.
+3. Keep onboarding short and skippable wherever possible.
+4. Do not ask for information that can be collected later through normal usage.
+5. Allow users to edit their profile and interests from the workspace settings.
+6. Preserve previous research, saved insights, and tasks for returning users.
+7. Show source names, dates, and links wherever research or news is presented.
+8. Clearly distinguish verified information from uncertain or incomplete information.
+9. Never imply that the agent has completed an external action unless it actually has.
+10. Ask for permission before consequential actions; do not silently make purchases or other sensitive commitments.
+11. Use helpful empty states. Explain what the user can do next instead of showing a blank page.
+12. Make the product responsive on desktop, tablet, and mobile. Prioritize the desktop workspace, but do not allow horizontal overflow on smaller screens.
+
+THE USER JOURNEY
+================
+
+SCREEN 1 — PUBLIC LANDING PAGE
+-----------------------------
+Goal: Explain OmniDesk quickly and convince a first-time visitor to enter the product.
+
+Suggested structure:
+
+A. Top navigation
+   - OmniDesk logo/name on the left.
+   - Keep links minimal: Product, How it works, and optionally About.
+   - Right side: “Log in” and a prominent “Get started” button.
+   - Avoid a large navigation menu.
+
+B. Hero section
+   - Main headline should communicate the outcome, not technical details.
+   - Suggested headline: “Your research. Your intelligence. One workspace.”
+   - Suggested supporting text: “Stay on top of important updates, research the web, and turn what you learn into meaningful next steps — with an AI workspace that understands what matters to you.”
+   - Primary CTA: “Get started”.
+   - Secondary CTA: “Explore the workspace” or “See how it works”.
+   - On the other side, show a polished preview of the OmniDesk workspace: a few FounderBrief cards, a research panel, and an assistant prompt. This can be a static UI mockup for the first version.
+
+C. Capability overview
+   - Briefly introduce the three core components: FounderBrief, AI Personal Assistant, and Web Agent.
+   - Use three compact cards or columns.
+   - Each card should explain the benefit in one or two sentences.
+
+D. Simple workflow explanation
+   - Show the product's central loop: Signal → Brief → Action.
+   - Example: discover a competitor launch → open “Brief me” → understand its impact → save an insight or create a task.
+
+E. Final CTA
+   - Repeat a clear “Get started” action.
+   - Keep the footer simple with only useful links.
+
+Do not turn the public landing page into a long marketing website. Its job is to explain the product and move the user into authentication.
+
+SCREEN 2 — SIGN UP / LOG IN
+---------------------------
+Goal: Let users access OmniDesk with as little friction as possible.
+
+- Provide clearly separated “Create account” and “Log in” states.
+- Keep the form minimal: email and password, plus a name field during account creation if needed.
+- Include password visibility, clear validation messages, and a useful error state.
+- Offer a password reset link.
+- A Google sign-in option may be included only if authentication support is actually implemented.
+- After successful authentication, check whether the account has completed its initial profile setup.
+
+Routing logic after authentication:
+
+IF the user already has an account and a completed profile:
+    Redirect directly to the Main Workspace.
+    Restore their previous research, saved insights, and tasks.
+
+IF the user is creating an account or has not completed the initial profile:
+    Redirect to the Minimal Profile Setup.
+
+Do not show onboarding to a returning user every time they log in.
+
+SCREEN 3 — MINIMAL PROFILE SETUP (NEW USERS ONLY)
+-------------------------------------------------
+Goal: Collect just enough context for OmniDesk to personalize the initial FounderBrief feed and assistant responses.
+
+The setup should feel like a short welcome conversation, not a long survey.
+
+Recommended approach: one compact screen or a maximum of two short steps. Aim for around 3 required inputs, with optional fields clearly marked. Let users skip optional questions and edit everything later.
+
+Required or high-value questions:
+
+1. What should we call you?
+   - A simple name field.
+
+2. What best describes your role?
+   - Use a short selectable list such as Founder, Student, Developer, Freelancer, Business owner, Researcher, or Other.
+   - Allow a custom role if practical.
+
+3. What are you interested in?
+   - Use selectable topic chips such as AI, startups, software, technology, business, marketing, finance, product launches, and research.
+   - Allow the user to add a custom topic.
+
+Optional personalization:
+
+4. Company / project name (optional).
+5. Competitors or companies to track (optional; allow multiple names).
+6. Specific goals or areas to follow (optional, preferably a short text field).
+
+Keep the competitor question optional. Not every user has a company or competitors. Do not force a user to provide company details just to use OmniDesk.
+
+UX details:
+- Show a small progress indicator if setup has multiple steps.
+- Use chips, dropdowns, or short inputs rather than a large questionnaire.
+- Explain why the information helps: “We'll use this to make your updates more relevant.”
+- Provide “Skip for now” for optional information.
+- Main CTA: “Build my workspace” or “Continue to OmniDesk”.
+- Once complete, take the user directly to the Main Workspace.
+
+Do not ask for phone number, address, company revenue, team size, or other unnecessary information in the MVP onboarding.
+
+SCREEN 4 — MAIN WORKSPACE / DASHBOARD
+-------------------------------------
+Goal: Make this the user's home base for discovering updates, researching topics, and continuing previous work.
+
+This is the most important screen in the application. It should be clean, organized, and useful at first glance.
+
+Suggested layout:
+
+A. Left sidebar
+   - OmniDesk logo/name at the top.
+   - Main navigation:
+       • Overview
+       • FounderBrief
+       • AI Assistant
+       • Web Research
+       • Saved Insights
+       • Tasks / Follow-ups
+   - Place profile/settings access near the bottom.
+   - Use clear labels and simple icons. Avoid too many nested menus.
+
+B. Top header
+   - A friendly greeting, such as “Good morning, Neel” or “Your workspace”.
+   - A universal search or research input can sit near the top if it does not clutter the screen.
+   - Place the dark/light mode toggle in the main workspace header only. Do not add a theme toggle to the public landing page or authentication screens.
+   - Keep account/profile access visible.
+
+C. FounderBrief — the primary dashboard content
+   - Show a heading such as “Your Intelligence Brief”.
+   - Display a small set of fresh, relevant updates rather than an endless wall of news.
+   - Each update card should include:
+       • Headline
+       • Short summary
+       • Source / publisher
+       • Published date (when available)
+       • Topic or category
+       • A short relevance label or explanation where possible
+       • “Brief me” action
+       • Save/bookmark action
+   - Make the feed feel personalized using the user's role, interests, company/project, and tracked competitors.
+   - Include a refresh action, but do not imply that information is live if it has not been refreshed.
+   - Provide loading, empty, and error states.
+
+D. Recent research / continue working
+   - Returning users should see their previous research works clearly.
+   - Add a section such as “Continue where you left off” or “Recent Research”.
+   - Each item should show its research title, a short description, and the last-updated date when available.
+   - Make it easy to reopen a previous research result.
+   - New users with no history should see a welcoming empty state, for example: “Your research will appear here. Start by asking OmniDesk a question.”
+
+E. Quick actions
+   - Provide a clear input or CTA such as “What would you like to research?”
+   - Offer a few example prompts (for example, “Track a competitor's latest launch” or “Compare the latest AI tools”).
+   - Keep quick actions focused on the three product capabilities. Avoid a crowded grid of unrelated tools.
+
+F. Optional assistant preview
+   - The dashboard may include a compact assistant panel or prompt box.
+   - Do not let the assistant panel compete visually with FounderBrief. The intelligence feed and recent research should remain easy to find.
+
+MAIN WORKSPACE SECTIONS
+=======================
+The left navigation can switch between these sections. They may be separate routes or views inside a shared workspace shell.
+
+1. OVERVIEW
+   - Personalized FounderBrief highlights.
+   - Recent research works.
+   - Saved insights count or preview.
+   - Pending tasks / follow-ups.
+   - A clear research input.
+
+2. FOUNDERBRIEF
+   - Dedicated feed of personalized news and updates.
+   - Simple filters for topics, companies, competitors, and date where practical.
+   - Every card should show its source and date when available.
+   - “Brief me” should open a detailed briefing view.
+
+3. BRIEFING / RESEARCH DETAIL VIEW
+   - Show the original update or user's research question.
+   - Present a structured summary:
+       • What happened / key facts
+       • Why it matters to this user
+       • Potential implications or opportunities
+       • Sources and links for verification
+   - Include actions such as Save Insight and Create Follow-up Task.
+   - Keep original source links accessible.
+   - Make it easy to return to the feed or previous workspace page.
+
+4. AI ASSISTANT
+   - A familiar conversational interface.
+   - Show the conversation history and a clear message input.
+   - Support research questions, report preparation, saving findings, and task creation as supported by the MVP.
+   - Use the user's profile and saved context when available.
+   - Show a confirmation step before any consequential action.
+
+5. WEB RESEARCH
+   - Give the user a clear task input: “What do you want me to research?”
+   - Provide examples for competitor research, product comparisons, company research, or market analysis.
+   - Show progress/status during a research task, without displaying fake activity.
+   - Present findings with evidence, source links, and dates where available.
+   - Keep the output readable and scannable. Avoid dumping raw web content onto the screen.
+
+6. SAVED INSIGHTS
+   - List research findings the user has bookmarked or saved.
+   - Allow users to reopen, search, or remove saved insights.
+   - Keep the source and saved date visible when available.
+
+7. TASKS / FOLLOW-UPS
+   - Show tasks created from research or assistant interactions.
+   - Keep task creation simple: title, optional notes, and status are sufficient for the MVP.
+   - Do not present advanced project management features unless they are actually being built.
+
+RETURNING USER EXPERIENCE
+=========================
+Returning users should not feel like they are starting from zero.
+
+After login:
+- Redirect directly to Overview.
+- Restore the user's saved profile and preferences.
+- Show their recent research works prominently.
+- Display saved insights and any existing tasks.
+- Keep their feed personalized based on their stored interests.
+- Do not repeat onboarding questions unless the user chooses to edit their profile.
+
+NEW USER EXPERIENCE
+===================
+After first-time setup:
+- Redirect to Overview.
+- Show a friendly welcome message.
+- Use the profile answers to seed the initial FounderBrief topics.
+- Show a few relevant starter updates if available.
+- Provide example research prompts so the user knows what to do.
+- Explain that previous research and saved insights will collect in the workspace over time.
+
+If there is no data yet, show a helpful empty state rather than fake research history or placeholder news presented as real.
+
+DARK / LIGHT MODE
+=================
+- Provide a dark/light theme toggle only inside the authenticated main workspace, preferably in the top header or user settings.
+- Default to a polished dark theme, consistent with the supplied reference direction, while ensuring the light theme is equally readable and complete.
+- Persist the user's theme preference between sessions if the app's storage supports it.
+- Apply the chosen theme consistently to the sidebar, cards, feed, research views, forms, dialogs, and text.
+- Maintain readable contrast, clear focus states, and visible interactive controls in both themes.
+- Do not make the theme toggle a distracting focal point.
+
+VISUAL STYLE
+============
+Aim for a focused, modern AI product aesthetic:
+- Dark-first visual direction with a warm or restrained accent color.
+- Strong typography hierarchy: one clear page title, concise section headings, readable body text.
+- Generous spacing and consistent alignment.
+- Simple cards with subtle borders and restrained shadows.
+- Rounded corners used consistently, not excessively.
+- Simple, recognizable icons.
+- Subtle hover and loading transitions only where they improve usability.
+- No unnecessary animations or decorative motion.
+- Avoid excessive gradients, neon colors, glassmorphism, and visual clutter.
+
+The UI should feel premium because it is organized and easy to use—not because it contains many effects.
+
+RECOMMENDED UI/UX REFERENCE SET FOR THE BUILD
+=============================================
+Prepare 4 clear reference screens/pages for the implementation agent. These should explain the intended experience and layout, not become four unrelated design systems.
+
+REFERENCE 1 — Public Landing Page
+- Hero, brief product preview, three capability cards, Signal → Brief → Action, and Get started CTA.
+
+REFERENCE 2 — Authentication + First-time Setup
+- Sign-up and log-in states, followed by the compact new-user profile setup.
+- Show the returning-user route as a flow note: completed profile → directly to workspace.
+
+REFERENCE 3 — Main Workspace Overview
+- Sidebar, workspace header, theme toggle, FounderBrief cards, recent research, quick research input, and useful empty state.
+
+REFERENCE 4 — Research / Briefing Detail
+- “Brief me” result with key facts, why it matters, implications, source links, Save Insight, and Create Task actions.
+
+The AI Assistant and Web Research can use the same authenticated workspace shell and shared component styles. They do not need entirely separate visual systems.
+
+RESPONSIVE BEHAVIOUR
+====================
+- Desktop: persistent sidebar and a comfortable multi-column workspace where appropriate.
+- Tablet: sidebar can collapse; cards should reflow without becoming cramped.
+- Mobile: use a compact navigation pattern, stack cards vertically, and keep the research input easy to reach.
+- Do not force the desktop three-column layout onto mobile.
+- Ensure forms, dialogs, buttons, and source links remain usable on touch screens.
+
+IMPORTANT PRODUCT AND BUILDING GUARDRAILS
+========================================
+1. Do not build an unnecessarily complex multi-page marketing site.
+2. Do not make onboarding long. Three required answers are enough to begin personalization.
+3. Do not force competitor or company information from users who do not have it.
+4. Do not show a returning user the onboarding flow again after it is completed.
+5. Do not lose or hide previous research works. They are a major reason to return to the product.
+6. Do not make the dashboard a generic news website. FounderBrief must feel personalized.
+7. Do not make the assistant and Web Agent compete with the primary dashboard feed.
+8. Do not present fake news, fake sources, fake research progress, or fake completed actions as real.
+9. Do not expose API keys or other secrets in frontend code.
+10. Do not claim a feature is functional when it is only a static mockup. Clearly separate working MVP features from future-facing UI.
+11. Do not add payments, booking automation, social inboxes, or other stretch features to the core MVP unless the team explicitly chooses them.
+12. Keep the interface consistent: shared sidebar, typography, buttons, cards, spacing, and theme tokens.
+
+SUGGESTED IMPLEMENTATION ORDER
+==============================
+Build the experience in this order so the core journey works before adding polish:
+
+1. Create the shared visual system and responsive workspace shell.
+2. Build the public landing page with Get started and Log in actions.
+3. Build sign-up / log-in screens and the post-authentication routing check.
+4. Build the minimal profile setup for new users only.
+5. Build the Main Workspace Overview with FounderBrief, recent research, and quick research entry.
+6. Build the detailed “Brief me” research view with sources and Save Insight / Create Task actions.
+7. Add the AI Assistant and Web Research sections using the same workspace design system.
+8. Add Saved Insights and Tasks / Follow-ups views.
+9. Add the workspace-only dark/light theme toggle and persist the preference if supported.
+10. Test the complete new-user and returning-user journeys on desktop and mobile.
+
+ACCEPTANCE CHECKLIST
+====================
+The UX flow is ready when all of the following are true:
+
+[ ] A visitor can understand what OmniDesk does from the public landing page.
+[ ] Get started and Log in lead to the correct authentication states.
+[ ] A new user is asked only a few useful profile questions.
+[ ] Optional profile questions can be skipped.
+[ ] A returning user with a completed profile goes straight to the workspace.
+[ ] Returning users can find and reopen previous research works.
+[ ] New users see a helpful first-time workspace state rather than fake history.
+[ ] FounderBrief cards show source and date information when available.
+[ ] “Brief me” opens a structured research result with evidence and source links.
+[ ] Users can save an insight and create a follow-up task where those MVP actions are implemented.
+[ ] AI Assistant and Web Research are accessible from the same workspace navigation.
+[ ] The dark/light toggle appears only in the authenticated workspace.
+[ ] Both themes are readable and consistent.
+[ ] The interface works on desktop, tablet, and mobile.
+[ ] No important action is presented as completed when it has not actually happened.
+
+FINAL DIRECTION TO THE UI/UX AGENT
+==================================
+Design OmniDesk as a simple, premium AI research workspace. Start with a clear public landing page inspired by the visual restraint and product-preview layout of the supplied Claude Code reference. After authentication, route returning users directly to their existing workspace and guide new users through a very short optional-friendly profile setup. The main workspace should make personalized FounderBrief updates, previous research works, and a clear research entry point immediately visible. Keep the AI Assistant and Web Agent accessible without overcrowding the dashboard. Use one consistent design system, a dark/light toggle only in the authenticated workspace, and no unnecessary complexity.
+
+The intended user feeling:
+“I signed in, OmniDesk understands what I care about, I can see what's new, continue my previous research, and start a new task without figuring out a complicated interface.”
+
+END OF GUIDELINES
