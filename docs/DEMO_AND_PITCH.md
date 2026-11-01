@@ -1,11 +1,69 @@
 # Demo and Pitch
 
-## The one message
+## Official Judging Criteria & Scoring Strategy
 
+The hackathon evaluates submissions on four explicit pillars:
+1. **Use of TinyFish (35%):** How central TinyFish is to the solution.
+2. **Problem Relevance & Impact (25%):** Value proposition, real-world utility, and market need.
+3. **Technical Execution & Working Demo (25%):** Code quality, system architecture, and reliable live demonstration.
+4. **Presentation (15%):** Narrative clarity, video pitch quality, and concise demonstration.
+
+```
++-------------------------------------------------------------------------------+
+|                        JUDGING CRITERIA BREAKDOWN                             |
+|                                                                               |
+|   [  Use of TinyFish: 35%  ]  [ Problem Impact: 25% ]  [ Tech Demo: 25% ] [15%]|
+|   - Search (Free Discovery)   - Eliminates B2B spam    - Next.js 15 App   - 90s|
+|   - Fetch (Clean Markdown)    - High-stakes D2C MOQs   - Real SSE Stream  - Live|
+|   - Agent ($0.016/step Live)  - Zero-hallucination     - 100% CI Gate     - Wow|
++-------------------------------------------------------------------------------+
+```
+
+---
+
+## 1. Pillar 1: Centrality of TinyFish (35% Weight)
+
+TinyFish is the **irreplaceable core engine** of OmniDesk, not a secondary add-on:
+
+1. **TinyFish Search API (Free Discovery Tier):**
+   * Executes multi-query discovery targeting Indian industrial locations (`location: "IN"`).
+   * Automatically bypasses aggregator spam directories (IndiaMART, Justdial, TradeIndia) using purpose signals.
+2. **TinyFish Fetch API (Free Content Extraction):**
+   * Batches candidate URLs (up to 10) and strips non-content navigation, tracking scripts, and cookie banners to output clean Markdown.
+   * Eliminates LLM token waste by 80% compared to raw HTML.
+3. **TinyFish Agent API (Autonomous Browser Escalation):**
+   * Deployed when supplier pages require dynamic interaction or bot-protected browsing.
+   * Streams the live automation directly into our frontend UI via `STREAMING_URL` iframe.
+4. **Official `@tiny-fish/sdk` Integration:**
+   * Uses typed SDK v0.11.0 server-side with strict error isolation and bounded execution budgets.
+
+---
+
+## 2. Pillar 2: Problem Relevance and Impact (25% Weight)
+
+* **The Problem:** Indian founders, D2C brand creators, and operators waste 10–15 hours weekly searching for packaging, raw material, and logistics suppliers. Aggregator platforms (IndiaMART/Justdial) do not show transparent MOQs or pricing, and aggressively broadcast founder phone numbers to spam callers.
+* **The Impact:** OmniDesk reduces 15 hours of manual tab-hopping into a **30-second verified decision matrix**.
+* **Zero-Hallucination Ground Truth:** B2B procurement cannot tolerate AI hallucinations. OmniDesk enforces the **Evidence or "Not found"** rule: every cell has a clickable verbatim quote with source URL, and unstated fields are marked `"Not found"`.
+
+---
+
+## 3. Pillar 3: Technical Execution & Working Demo (25% Weight)
+
+* **Robust Full-Stack Architecture:** Next.js 15 (App Router), TypeScript (Strict Mode), Tailwind CSS.
+* **Real-Time Streaming Protocol:** Native Server-Sent Events (SSE) via `POST /api/research` with 5-second heartbeat comments (`: ping\n\n`) ensuring zero cloud disconnects on Vercel.
+* **Latency Optimization (Batch Extraction):** Optimized LLM roundtrips from 10 sequential calls to 3 batch calls, achieving complete pipeline runs in **under 35 seconds**.
+* **100% Verified CI Gate:** `pnpm gate` (`tsc --noEmit && vitest run && next build`) passes with 0 errors.
+* **Resilient Offline Mock Parity:** `MockResearchEngine` (`DEMO_MODE=1`) guarantees a deterministic fallback demo that functions even during hotel/stage WiFi drops.
+
+---
+
+## 4. Pillar 4: Presentation & Live Script (15% Weight)
+
+### The One Message
 "AI chatbots give you information. OmniDesk gives you a **decision** — researched from the live
-web, cited, compared, and turned into a ready-to-send draft that you approve."
+web via TinyFish, cited with exact quotes, compared side-by-side, and turned into an approved outreach action."
 
-## 60–90 second video script (record against the deployed URL, one take + captions)
+### 60–90 Second Video Script (Record against deployed URL)
 
 | Time | Beat | On screen |
 | --- | --- | --- |

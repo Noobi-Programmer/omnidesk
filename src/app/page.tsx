@@ -189,10 +189,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 text-xs font-mono text-zinc-400">
-          <div className="flex items-center space-x-1.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md">
+        <div className="flex items-center space-x-3 text-xs font-mono text-zinc-400">
+          <div className="hidden md:flex items-center space-x-2 bg-zinc-950 border border-zinc-800 px-3 py-1.5 rounded-lg text-zinc-400">
+            <span className="text-zinc-500 font-semibold">TinyFish Stack:</span>
+            <span className="text-emerald-400">Search</span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-emerald-400">Fetch</span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-indigo-400">Agent Browser</span>
+          </div>
+          <div className="flex items-center space-x-1.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>TinyFish Engine: Ready</span>
+            <span className="font-medium text-zinc-300">Live Web Grounded</span>
           </div>
           <div className="flex items-center space-x-1.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md text-zinc-400">
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
