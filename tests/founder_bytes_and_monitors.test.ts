@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { getFounderBytes, addFounderByte } from "@/server/services/bytes/index";
+import { getFounderBytes, addFounderByte } from "../src/server/services/bytes/index";
 import {
   listMonitors,
   createMonitor,
   updateMonitorStatus,
   runMonitorNow,
   deleteMonitor,
-} from "@/server/services/tinyfish/monitors";
-import { isSourceAllowed, getSourceForUrl } from "@/server/services/bytes/registry";
-import { MockResearchEngine } from "@/server/mock/engine";
-import type { FounderByte, ResearchResponse } from "@/lib/contracts";
+} from "../src/server/services/tinyfish/monitors";
+import { isSourceAllowed, getSourceForUrl } from "../src/server/services/bytes/registry";
+import { MockResearchEngine } from "../src/server/mock/engine";
+import type { FounderByte, ResearchResponse } from "../src/lib/contracts";
 
 describe("Founder Bytes & Source Registry Suite", () => {
   it("retrieves curated founder bytes and filters by category", async () => {
@@ -24,9 +24,9 @@ describe("Founder Bytes & Source Registry Suite", () => {
   });
 
   it("filters founder bytes by search keyword", async () => {
-    const anthropicBytes = await getFounderBytes({ query: "Anthropic" });
+    const anthropicBytes = await getFounderBytes({ query: "Dynamic Reasoning" });
     expect(anthropicBytes.length).toBeGreaterThan(0);
-    expect(anthropicBytes[0].title.toLowerCase()).toContain("anthropic");
+    expect(anthropicBytes[0].title.toLowerCase()).toContain("dynamic reasoning");
   });
 
   it("adds and deduplicates new founder bytes dynamically", async () => {

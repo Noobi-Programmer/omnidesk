@@ -108,12 +108,10 @@ export async function listMonitors(): Promise<TinyMonitor[]> {
       last_run_at: m.updated_at,
     }));
 
-    // If live API returns empty monitors, return our default seed monitors so the user has immediate subscriptions to explore
-    if (liveMonitors.length === 0) {
-      return fallbackMonitors;
-    }
-
-    return liveMonitors;
+    // Return live monitors merged with seed presets so default subscriptions are always visible
+    const existingNames = new Set(liveMonitors.map((m) => m.name.toLowerCase()));
+    const complementarySeeds = fallbackMonitors.filter((f) => !existingNames.has(f.name.toLowerCase()));
+    return [...liveMonitors, ...complementarySeeds];
   } catch {
     return fallbackMonitors;
   }

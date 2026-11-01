@@ -4,71 +4,84 @@
 
 ---
 
-## 1. Project Identity & Critical Context
-* **Project Name:** OmniDesk — The AI Chief of Staff
+## 1. Project Identity & Architecture
+* **Project Name:** OmniDesk — Deep Research & Founder Intelligence
 * **Team:** Team Thambiis (Swim with TinyFish Hackathon, Scaler School of Technology)
-* **Core Value:** Action-oriented research engine. One request -> Understand -> Research -> Analyze -> Decide -> Act (with human approval).
+* **Core Product Pillars:**
+  1. **Pillar A: Deep Research (One-Time Investigations):**
+     * Multi-query planning & decomposition.
+     * TinyFish Search + TinyFish Fetch (zero Agent/Browser dependencies).
+     * Forensic claim verification with verbatim quotes.
+     * 9-section structured Deep Research Report + interactive Comparison Matrix + Evidence Score meters + Commercial Action Drafts.
+  2. **Pillar B: Founder Bytes (Recurring Web Intelligence & TinyMonitor):**
+     * High-signal curated feed (YC, Reuters, X/Twitter, TechCrunch, Stratechery).
+     * Editorial card layout with "Why it matters" highlight blocks.
+     * Server-side REST client for **TinyMonitor** (`https://agent.tinyfish.ai/v1/monitors`): Topic Monitors (`type: "search"`) and Page Monitors (`type: "fetch"`).
+     * Webhook ingestion endpoint: `POST /api/webhooks/tinyfish-monitor`.
+     * Pre-configured seed subscriptions + user subscription management UI (check now, pause, resume, create, delete) with wallet awareness ($17.00 balance display).
+* **Navigation:** Left sidebar with 5 focused items:
+  1. `+ New Research`
+  2. `Deep Research` (Pillar A)
+  3. `Founder Bytes` (Pillar B)
+  4. `History`
+  5. `Saved` (persisted to localStorage)
+  *(Strictly no Inbox, Tasks, Approval Dock, or browser automation).*
 * **Repository:** `https://github.com/Noobi-Programmer/omnidesk.git` (branch: `main`)
 * **Local Working Directory:** `c:\Users\abini\Projects\projects\Swim with Tinyfish` and mirror `C:\Users\abini\Projects\Tinyfish`
-* **Budget & Constraints:** ₹0 budget (free tiers only). Server-side secrets only. No external actions without human approval.
 
 ---
 
-## 2. Official Hackathon Judging Criteria (Keep Top of Mind)
+## 2. Official Hackathon Judging Criteria (35% TinyFish)
 1. **Use of TinyFish (35%):**
-   * TinyFish Search (free queries) + TinyFish Fetch (free clean markdown batch fetch) + TinyFish Agent (live browser automation stream).
-   * Live streaming PIP browser agent integration for dynamic web pages.
+   * Deep Research: TinyFish Search + Fetch for multi-source investigation and clean Markdown extraction.
+   * Founder Bytes: TinyFish Monitor API (TinyMonitor) for recurring web change monitoring + Search/Fetch enrichment.
+   * Total 3 core TinyFish capabilities in production.
 2. **Problem Relevance and Impact (25%):**
-   * Autonomous AI Chief of Staff solving the painful problem of supplier sourcing, aggregator spam, hidden MOQs, and ungrounded hallucinated recommendations.
+   * Eliminates hallucinated business research and ad-driven noise; delivers cited, fact-checked reports and high-signal founder intelligence.
 3. **Technical Execution & Working Demo (25%):**
-   * Strict TypeScript strict mode, 100% Zod boundary validation.
-   * Real SSE streaming with clean progress updates.
-   * Comprehensive automated tests: 25 tests passing (contracts, correctness, and hard constraint compliance).
+   * 100% strict TypeScript types, 34 automated tests passing across 4 suites, Next.js 15 production build passing with 0 errors.
 4. **Presentation (15%):**
-   * High-polish executive dashboard: collapsible research details, verifiable comparison matrix with clickable verbatim quote citations, and a human-gated Action Dock with direct `mailto:` / copy-paste fallbacks.
+   * High-polish executive dashboard with comparison tables, evidence score meters, citation pills, and clean dark/light themes.
 
 ---
 
-## 3. P0 Critical Research Correctness Fixes Completed
-1. **Search Relevance & Aggregator Filtering:**
-   * Expanded `BLOCKED_DOMAINS` and `EDITORIAL_PATH_PATTERNS` in `src/server/services/tinyfish/search.ts`.
-   * Automatically filters out couriers/parcel services (`porter.in`, `bluedart.com`, `delhivery.com`), aggregators (`indiamart.com`, `tradeindia.com`, `justdial.com`), and editorial listicles (`/blog/`, `/top-10`, `/best-`).
-2. **Strict Supplier Qualification (`src/server/orchestrator/qualification.ts`):**
-   * Verifies genuine manufacturing/supply category, geography/regional presence, and rejects editorial blogs and courier false positives.
-   * Cleans noisy SEO title tags to extract official company names.
-3. **Evidence-Based Extraction (Zero Generic Placeholders):**
-   * Extracts target fields: `product_range`, `pricing`, `moq`, `delivery`, `credibility`, `email`, `phone`, `location`.
-   * Missing details remain strictly `null` (status `not_found`). Generic filler phrases ("standard manufacturer catalogue", "contact for MOQ", "standard lead times apply", "verified registered company") are banned and filtered out.
-   * All verified facts include verbatim quote citations and direct source URLs.
-4. **Honest Recommendation & Sufficiency:**
-   * Only qualified suppliers are synthesized into executive recommendations.
-   * Replaced misleading percentage scores with honest evidence disclosure (e.g. `8 of 8 facts verified`).
-   * Honest notification banner displayed if fewer than 3 candidates qualify.
-5. **Action Draft Integrity:**
-   * Action draft emails are addressed only to qualified suppliers with verified email addresses.
-   * If email is not found: displays "Email not publicly available", provides direct link to supplier website, prepares a generic draft for contact form submission, and **disables** the direct mailto send button.
+## 3. Current Implementation Status
+
+| Feature / Component | Status | Details |
+| --- | --- | --- |
+| `src/lib/contracts/index.ts` | Complete | Types for Deep Research, Reports, Citations, Founder Bytes, TinyMonitors, and Source Registry. |
+| `src/server/orchestrator/` | Complete | Multi-query decomposition, Search + Fetch execution, 9-section report synthesis. |
+| `src/server/mock/engine.ts` | Complete | Deterministic offline engine producing full report with citations. |
+| `src/server/services/tinyfish/monitors.ts` | Complete | REST client for TinyMonitor (list, create, update status, run now, delete) with fallback store. |
+| `src/server/services/bytes/` | Complete | Curated intelligence feed, deduplication, search/category filtering, and allowed Source Registry. |
+| `src/app/api/monitors/` | Complete | Endpoints for monitor CRUD and instant on-demand runs (`/runs`). |
+| `src/app/api/webhooks/tinyfish-monitor/` | Complete | Validates monitor ID, deduplicates runs, fetches article content via Fetch, and adds new Founder Bytes. |
+| `src/app/api/bytes/` | Complete | Endpoint for filtered founder intelligence with live web sync. |
+| `src/components/Sidebar.tsx` | Complete | Focused 4-item navigation (`research`, `bytes`, `history`, `saved`) + New Research button. |
+| `src/components/FounderBytesView.tsx` | Complete | Feed view with category pills, search, "Why it matters" blocks, and TinyMonitor subscription manager. |
+| `src/components/DeepReportView.tsx` | Complete | Full 9-section deep report, citations, entity profiles, statistics table, and MD/JSON export. |
+| `src/components/SavedView.tsx` | Complete | Saved reports and bookmarked bytes management with localStorage sync. |
+| `src/components/HistoryView.tsx` | Complete | Past research query history, search, and reload. |
+| `src/app/page.tsx` | Complete | Central workspace orchestrating tabs, research runner, drawer, and modals. |
 
 ---
 
-## 4. Current Build & Test Status
+## 4. Verification Commands
 
-| Component | Status | Verification Command |
-| :--- | :--- | :--- |
-| **TypeScript Typecheck** | PASS (0 errors) | `pnpm typecheck` |
-| **Unit & Integration Tests** | 25/25 PASSED | `pnpm test` (`vitest run`) |
-| **Next.js Production Build** | PASS (0 errors) | `pnpm build` (`next build`) |
-| **Full Gate Script** | PASS | `pnpm gate` |
-
----
-
-## 5. Quick Commands for Resuming Agent
 ```bash
-# Run local dev server:
-pnpm dev
+# 1. Typecheck
+pnpm typecheck
 
-# Run full test suite:
+# 2. Automated Test Suite (34 tests)
 pnpm test
 
-# Run full verification gate:
-pnpm gate
+# 3. Production Build
+pnpm build
 ```
+
+---
+
+## 5. Next Steps for Incoming Agent
+1. If making any frontend polish changes, run `pnpm typecheck` and `pnpm test` immediately.
+2. Ensure git commits follow conventional commits (`feat:`, `fix:`, `docs:`).
+3. Push to `origin main` and synchronize local mirror `C:\Users\abini\Projects\Tinyfish`.

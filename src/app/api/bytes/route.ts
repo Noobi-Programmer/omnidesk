@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFounderBytes } from "@/server/services/bytes";
+import { getFounderBytes } from "@/server/services/bytes/index";
 import type { ApiResponse, FounderByte } from "@/lib/contracts";
 
 export const dynamic = "force-dynamic";

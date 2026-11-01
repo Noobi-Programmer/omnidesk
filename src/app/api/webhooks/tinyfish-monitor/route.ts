@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { MonitorWebhookPayload, FounderByte, FeedCategory } from "@/lib/contracts";
-import { addFounderByte } from "@/server/services/bytes";
+import { addFounderByte } from "@/server/services/bytes/index";
 import { getSourceForUrl } from "@/server/services/bytes/registry";
 import { fetchUrlAsMarkdown } from "@/server/services/tinyfish/fetch";
 

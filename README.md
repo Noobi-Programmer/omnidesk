@@ -1,69 +1,81 @@
-# OmniDesk — The AI Chief of Staff
+# OmniDesk — Deep Research & Founder Intelligence
 
-OmniDesk turns one natural-language request into a finished, source-backed business decision:
-**One request → Understand → Research → Analyze → Decide → Act (with human approval).**
+OmniDesk is an intelligent research workspace and recurring intelligence system designed specifically for founders, operators, and decision-makers:
+**Live Web Discovery → Clean Markdown Extraction → Grounded Claim Verification → Executive Synthesis.**
 
-Built by **Team Thambiis** (3 builders) for **Swim with TinyFish** at Scaler School of Technology.
-Budget: **₹0** — free tiers only. Live web intelligence is powered by the **TinyFish** platform
-(Search, Fetch, Agent, Browser APIs) via the official `@tiny-fish/sdk`.
+Built by **Team Thambiis** for **Swim with TinyFish** at Scaler School of Technology.
+Live web intelligence is powered by **TinyFish** (Search, Fetch, and TinyMonitor APIs) via official server-side SDK and REST integrations.
 
-## The 90-second pitch
+---
 
-A founder types:
+## The Two Product Pillars
 
-> "Find five reliable packaging suppliers in Bengaluru for a small D2C brand. Compare their
-> product range, pricing, minimum order quantity, delivery, credibility and contact details.
-> Recommend the best three and draft an enquiry email to the top choice."
+### Pillar A: Deep Research (One-Time Deep Investigations)
+An intelligent research workspace that investigates complex questions across multiple websites and produces evidence-backed, cited reports.
+- **Decomposition**: Formulates targeted subqueries from natural language prompts.
+- **Live Discovery**: Leverages **TinyFish Search** across primary web sources.
+- **Clean Extraction**: Retrieves clean page content via **TinyFish Fetch** (no HTML boilerplate).
+- **Forensic Claim Verification**: Grounded in verbatim quotes; preserves missing facts as `"Not found"`.
+- **Comprehensive Executive Report**: Structured into 9 canonical sections (Executive Summary, Methodology, Key Findings, Detailed Analysis with inline `[1]` citations, Identified Entities, Quantitative Evidence, Missing Disclosures, and Strategic Implications).
+- **Interactive Visualizations**: Comparative matrix, feature grid, and evidence score confidence meters.
+- **Commercial Action Drafts**: Generates supplier/partner outreach emails with `mailto:` protocols and follow-up tasks with zero automated side-effects.
 
-OmniDesk plans the research, searches the live web, fetches and reads supplier websites,
-extracts structured facts with citations, builds a comparison table, flags every unknown as
-**"Not found"** (never fabricates), ranks the best three with reasons, and drafts the enquiry
-email — which is sent nowhere until a human clicks **Approve**.
+### Pillar B: Founder Bytes (Recurring Web Intelligence & TinyMonitor)
+A curated intelligence digest and recurring monitoring infrastructure for high-signal business developments.
+- **High-Signal Sources**: Curated feed spanning Y Combinator, Reuters, X / Twitter founder commentary, and top tech publications.
+- **Editorial Card Layout**: Headline, source badge, author, published date, retrieval timestamp, summary, **"Why it matters"** highlight block, and related entities.
+- **TinyMonitor Infrastructure**:
+  - **Topic Monitors (`type: "search"`)**: Repeatedly queries search indices with recency windows (24h) and detects new URLs.
+  - **Page Monitors (`type: "fetch"`)**: Monitors specific public URLs (e.g. YC blog) for meaningful content changes.
+  - **Server-Side REST Management**: Create, list, pause, resume, trigger immediate check (`/runs`), and delete subscriptions.
+  - **Secure Webhook Ingestion (`POST /api/webhooks/tinyfish-monitor`)**: Deduplicates incoming runs, validates publishers against the allowed Source Registry, enriches candidates via TinyFish Fetch, and automatically adds new bytes to the feed.
+  - **Wallet & Cost Awareness**: Real-time balance display and budget discipline (daily schedules, narrow queries) to prevent runaway billing.
 
-## Status
+---
 
-- **Phase:** planning complete, implementation not started (by design — this package is the
-  build contract).
-- Repository `Noobi-Programmer/omnidesk` is initialized locally and connected to remote
-  `https://github.com/Noobi-Programmer/omnidesk.git` on branch `main`. See `setup/GITHUB_SETUP.md`.
+## Technical Architecture & Routes
 
-## Documentation map
+```
+OmniDesk Architecture:
+├─ Pillar A (Deep Research): TinyFish Search → TinyFish Fetch → Grounding → Deep Report & Matrix
+└─ Pillar B (Founder Bytes): TinyMonitor → Webhook Ingestion → Source Registry → Live Feed
+```
 
-| Document | Purpose |
-| --- | --- |
-| [`docs/PRODUCT_BRIEF.md`](docs/PRODUCT_BRIEF.md) | Positioning, pillars, differentiator, non-goals |
-| [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) | P0 scope, canonical demo, acceptance criteria |
-| [`docs/SOFTWARE_ARCHITECTURE.md`](docs/SOFTWARE_ARCHITECTURE.md) | System design, pipeline, boundaries |
-| [`docs/TINYFISH_INTEGRATION.md`](docs/TINYFISH_INTEGRATION.md) | Verified TinyFish facts, adapter design, costs |
-| [`docs/USER_WORKFLOWS.md`](docs/USER_WORKFLOWS.md) | Primary and future user journeys |
-| [`docs/API_CONTRACTS.md`](docs/API_CONTRACTS.md) | TypeScript contracts, endpoints, SSE protocol |
-| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | MVP storage + future Supabase schema |
-| [`docs/SECURITY_AND_APPROVALS.md`](docs/SECURITY_AND_APPROVALS.md) | Trust model, injection defence, approval gates |
-| [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) | Milestones, cutoffs, discard conditions |
-| [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Acceptance tests, E2E script, demo checklist |
-| [`docs/DEMO_AND_PITCH.md`](docs/DEMO_AND_PITCH.md) | Live demo script + 60–90s video script |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Decision ledger (verified / assumption / decision) |
-| [`tasks/BACKEND_AGENT.md`](tasks/BACKEND_AGENT.md) | Workstream A task contract |
-| [`tasks/FRONTEND_AGENT.md`](tasks/FRONTEND_AGENT.md) | Workstream B task contract |
-| [`tasks/INTEGRATION_QA_AGENT.md`](tasks/INTEGRATION_QA_AGENT.md) | Workstream C task contract |
-| [`setup/GITHUB_SETUP.md`](setup/GITHUB_SETUP.md) | gh CLI commands to create and push the repo |
-| [`setup/ENVIRONMENT_SETUP.md`](setup/ENVIRONMENT_SETUP.md) | Accounts, keys, free-tier checks |
-| [`setup/LOCAL_DEVELOPMENT.md`](setup/LOCAL_DEVELOPMENT.md) | Run, test, debug commands |
+### Application Routes
+- `/`: Interactive workspace with tab navigation (`Deep Research`, `Founder Bytes`, `History`, `Saved`).
+- `POST /api/research`: Streaming SSE endpoint for deep research investigations.
+- `GET /api/bytes`: Filtered founder intelligence feed with live sync support.
+- `GET /api/monitors`: List active TinyMonitor subscriptions.
+- `POST /api/monitors`: Create a new topic or page monitor.
+- `PATCH /api/monitors/[id]`: Pause or resume monitor subscriptions.
+- `POST /api/monitors/[id]/runs`: Trigger an immediate check on demand.
+- `DELETE /api/monitors/[id]`: Delete a monitor subscription.
+- `POST /api/webhooks/tinyfish-monitor`: Ingest scheduled monitor webhook events.
+- `POST /api/actions/[id]/decision`: Human approval decision gate for action drafts.
+- `GET /api/health`: Health and telemetry endpoint.
 
-Agent instructions: [`AGENTS.md`](AGENTS.md) (universal) → [`CLAUDE.md`](CLAUDE.md),
-[`GEMINI.md`](GEMINI.md), [`OPENCODE.md`](OPENCODE.md) (tool-specific).
+---
 
-## Intended stack (decided, see DECISIONS.md)
+## Quality & Verification
 
-Next.js (App Router) + TypeScript strict · `@tiny-fish/sdk` server-side only · Google Gemini API
-free tier as the reasoning LLM (provider-agnostic interface) · Tailwind CSS · Vercel Hobby ·
-pnpm · no database in the MVP (localStorage history; Supabase schema reserved for later).
+- **TypeScript Strict Mode**: Zero `any` in exported signatures; strict contract definitions in `src/lib/contracts/`.
+- **Test Suite**: 34 unit, contract, and correctness tests passing across 4 test suites:
+  ```bash
+  pnpm test
+  # ✓ tests/contracts.test.ts (3 tests)
+  # ✓ tests/correctness.test.ts (8 tests)
+  # ✓ tests/founder_bytes_and_monitors.test.ts (9 tests)
+  # ✓ tests/ui_and_hard_constraints.test.ts (14 tests)
+  ```
+- **Typecheck & Production Build**:
+  ```bash
+  pnpm typecheck   # tsc --noEmit (0 errors)
+  pnpm build       # next build (production build passes)
+  ```
 
-## Principles
+---
 
-1. **One complete workflow beats five half-modules.** P0 only until it works end-to-end.
-2. **Evidence or "Not found"** — never a fabricated price, MOQ, or rating.
-3. **No external action without explicit human approval.** No payments, ever.
-4. **Cost ladder:** Search (free) → Fetch (free) → Agent ($0.016/step) → Browser ($0.002/min).
-   Escalate only when the cheaper tool cannot do the job.
-5. **Three workstreams, zero file overlap.** See AGENTS.md ownership matrix.
+## Team & Hackathon Submission
+
+- **Team**: Team Thambiis (Swim with TinyFish, Scaler School of Technology)
+- **Repository**: `https://github.com/Noobi-Programmer/omnidesk.git` (branch `main`)
